@@ -18,6 +18,7 @@ export default function FindGuidePage() {
     language: '',
     specialty: '',
     minRating: 0,
+    maxPrice: 10000,
   });
 
   useEffect(() => {
@@ -59,6 +60,12 @@ export default function FindGuidePage() {
     if (filters.minRating > 0) {
       filtered = filtered.filter(guide =>
         (guide.averageRating || 0) >= filters.minRating
+      );
+    }
+
+    if (filters.maxPrice > 0) {
+      filtered = filtered.filter(guide =>
+        (guide.hourlyRate || 0) <= filters.maxPrice
       );
     }
 
@@ -164,6 +171,19 @@ export default function FindGuidePage() {
                 <option value="4.5">4.5+ Stars</option>
               </select>
             </div>
+
+            <div>
+              <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
+                Max Price (₹/hour)
+              </label>
+              <Input
+                type="number"
+                placeholder="e.g., 5000"
+                value={filters.maxPrice}
+                onChange={(e) => setFilters({ ...filters, maxPrice: Number(e.target.value) })}
+                className="font-paragraph"
+              />
+            </div>
           </div>
         </motion.div>
 
@@ -255,7 +275,7 @@ export default function FindGuidePage() {
                         </div>
                         {guide.hourlyRate && (
                           <span className="font-heading text-lg font-bold text-secondary">
-                            ${guide.hourlyRate}/hr
+                            ₹{guide.hourlyRate}/hr
                           </span>
                         )}
                       </div>

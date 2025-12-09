@@ -12,6 +12,7 @@ import ToursPage from '@/components/pages/ToursPage';
 import TourDetailPage from '@/components/pages/TourDetailPage';
 import ProfilePage from '@/components/pages/ProfilePage';
 import GuideDashboardPage from '@/components/pages/GuideDashboardPage';
+import TouristDashboardPage from '@/components/pages/TouristDashboardPage';
 import FindGuidePage from '@/components/pages/FindGuidePage';
 import GuideProfilePage from '@/components/pages/GuideProfilePage';
 import BookingPage from '@/components/pages/BookingPage';
@@ -57,6 +58,14 @@ const router = createBrowserRouter([
         element: (
           <MemberProtectedRoute messageToSignIn="Sign in to view your profile">
             <ProfilePage />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "dashboard",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view your dashboard">
+            <TouristDashboardPage />
           </MemberProtectedRoute>
         ),
       },

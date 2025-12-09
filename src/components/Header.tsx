@@ -49,6 +49,14 @@ export default function Header() {
                   Profile
                 </Link>
                 <Link 
+                  to="/dashboard" 
+                  className={`font-paragraph text-base transition-colors ${
+                    isActive('/dashboard') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  My Bookings
+                </Link>
+                <Link 
                   to="/guide-dashboard" 
                   className={`font-paragraph text-base transition-colors ${
                     isActive('/guide-dashboard') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
@@ -132,6 +140,15 @@ export default function Header() {
                     }`}
                   >
                     Profile
+                  </Link>
+                  <Link 
+                    to="/dashboard" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`font-paragraph text-base transition-colors ${
+                      isActive('/dashboard') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                    }`}
+                  >
+                    My Bookings
                   </Link>
                   <Link 
                     to="/guide-dashboard" 

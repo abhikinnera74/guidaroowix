@@ -14,7 +14,7 @@ export interface Bookings {
   /** @wixFieldType date */
   bookingDate?: Date | string;
   /** @wixFieldType time */
-  bookingTime?: string;
+  bookingTime?: any;
   /** @wixFieldType number */
   durationHours?: number;
   /** @wixFieldType number */
@@ -58,6 +58,14 @@ export interface Guides {
   _createdDate?: Date;
   _updatedDate?: Date;
   /** @wixFieldType text */
+  city?: string;
+  /** @wixFieldType number */
+  averageRating?: number;
+  /** @wixFieldType text */
+  specialty?: string;
+  /** @wixFieldType number */
+  hourlyRate?: number;
+  /** @wixFieldType text */
   fullName?: string;
   /** @wixFieldType text */
   email?: string;
@@ -71,14 +79,6 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
-  /** @wixFieldType text */
-  specialty?: string;
-  /** @wixFieldType number */
-  hourlyRate?: number;
-  /** @wixFieldType text */
-  city?: string;
-  /** @wixFieldType number */
-  averageRating?: number;
 }
 
 
@@ -103,7 +103,7 @@ export interface Notifications {
   /** @wixFieldType date */
   bookingDate?: Date | string;
   /** @wixFieldType time */
-  bookingTime?: string;
+  bookingTime?: any;
   /** @wixFieldType number */
   bookingDuration?: number;
   /** @wixFieldType number */

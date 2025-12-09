@@ -190,7 +190,7 @@ export default function BookingPage() {
               <div className="mb-6">
                 <p className="font-paragraph text-sm text-foreground/70 mb-2">Hourly Rate</p>
                 <p className="font-heading text-3xl font-bold text-secondary">
-                  ${guide.hourlyRate || 0}
+                  ₹{guide.hourlyRate || 0}
                 </p>
               </div>
             </div>
@@ -283,16 +283,16 @@ export default function BookingPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-paragraph text-base text-foreground">
-                        ${guide.hourlyRate || 0} × {bookingData.duration} hour{bookingData.duration !== 1 ? 's' : ''}
+                        ₹{guide.hourlyRate || 0} × {bookingData.duration} hour{bookingData.duration !== 1 ? 's' : ''}
                       </span>
                       <span className="font-paragraph text-base text-foreground">
-                        ${(guide.hourlyRate || 0) * bookingData.duration}
+                        ₹{(guide.hourlyRate || 0) * bookingData.duration}
                       </span>
                     </div>
                     <div className="border-t border-primary/20 pt-3 flex justify-between items-center">
                       <span className="font-heading text-lg font-bold text-primary">Total</span>
                       <span className="font-heading text-3xl font-bold text-secondary">
-                        ${calculateTotal()}
+                        ₹{calculateTotal()}
                       </span>
                     </div>
                   </div>

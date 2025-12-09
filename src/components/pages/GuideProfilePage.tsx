@@ -167,7 +167,7 @@ export default function GuideProfilePage() {
                 {guide.hourlyRate && (
                   <div className="flex items-start gap-3">
                     <span className="font-paragraph text-sm text-foreground/70">Hourly Rate</span>
-                    <p className="font-heading text-2xl font-bold text-secondary">${guide.hourlyRate}</p>
+                    <p className="font-heading text-2xl font-bold text-secondary">₹{guide.hourlyRate}</p>
                   </div>
                 )}
               </div>

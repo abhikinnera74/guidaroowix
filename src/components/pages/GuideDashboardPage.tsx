@@ -1,103 +1,119 @@
 import { useEffect, useState } from 'react';
+import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
-import { Tours } from '@/entities';
+import { Bookings, Guides, Notifications } from '@/entities';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { Plus, Edit, Trash2, MapPin, Clock, DollarSign } from 'lucide-react';
+import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 
 export default function GuideDashboardPage() {
-  const [tours, setTours] = useState<Tours[]>([]);
+  const { member } = useMember();
+  const [guide, setGuide] = useState<Guides | null>(null);
+  const [bookings, setBookings] = useState<Bookings[]>([]);
+  const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingTour, setEditingTour] = useState<Tours | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<Partial<Omit<Tours, 'nextAvailableDate'>> & { nextAvailableDate?: string }>({
-    tourName: '',
-    tourDescription: '',
-    location: '',
-    pricePerPerson: 0,
-    mainImage: '',
-    durationHours: 0,
-    nextAvailableDate: '',
-    whatsIncluded: '',
-  });
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
 
   useEffect(() => {
-    loadTours();
-  }, []);
+    loadGuideData();
+  }, [member]);
 
-  const loadTours = async () => {
+  const loadGuideData = async () => {
     setLoading(true);
-    const { items } = await BaseCrudService.getAll<Tours>('tours');
-    setTours(items);
-    setLoading(false);
-  };
+    try {
+      // Get guide profile
+      const { items: guides } = await BaseCrudService.getAll<Guides>('guides');
+      const userGuide = guides.find(g => g.email === member?.loginEmail);
+      setGuide(userGuide || null);
 
-  const handleCreateTour = () => {
-    setEditingTour(null);
-    setFormData({
-      tourName: '',
-      tourDescription: '',
-      location: '',
-      pricePerPerson: 0,
-      mainImage: '',
-      durationHours: 0,
-      nextAvailableDate: '',
-      whatsIncluded: '',
-    });
-    setIsDialogOpen(true);
-  };
+      if (userGuide) {
+        // Get bookings for this guide
+        const { items: allBookings } = await BaseCrudService.getAll<Bookings>('bookings');
+        const guideBookings = allBookings.filter(b => b.guideReference === userGuide._id);
+        setBookings(guideBookings);
 
-  const handleEditTour = (tour: Tours) => {
-    setEditingTour(tour);
-    setFormData({
-      tourName: tour.tourName || '',
-      tourDescription: tour.tourDescription || '',
-      location: tour.location || '',
-      pricePerPerson: tour.pricePerPerson || 0,
-      mainImage: tour.mainImage || '',
-      durationHours: tour.durationHours || 0,
-      nextAvailableDate: tour.nextAvailableDate ? new Date(tour.nextAvailableDate).toISOString().split('T')[0] : '',
-      whatsIncluded: tour.whatsIncluded || '',
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteTour = async (tourId: string) => {
-    if (confirm('Are you sure you want to delete this tour?')) {
-      await BaseCrudService.delete('tours', tourId);
-      loadTours();
+        // Get notifications for this guide
+        const { items: allNotifications } = await BaseCrudService.getAll<Notifications>('notifications');
+        setNotifications(allNotifications);
+      }
+    } catch (error) {
+      console.error('Error loading guide data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingTour) {
-      await BaseCrudService.update<Tours>('tours', {
-        _id: editingTour._id,
-        ...formData,
+  const handleBookingStatus = async (bookingId: string, status: 'Confirmed' | 'Cancelled') => {
+    try {
+      await BaseCrudService.update<Bookings>('bookings', {
+        _id: bookingId,
+        bookingStatus: status,
       });
-    } else {
-      await BaseCrudService.create('tours', {
-        _id: crypto.randomUUID(),
-        ...formData,
-      });
+      loadGuideData();
+      alert(`Booking ${status.toLowerCase()} successfully`);
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      alert('Failed to update booking');
     }
-    
-    setIsDialogOpen(false);
-    loadTours();
+  };
+
+  const handleMarkNotificationRead = async (notificationId: string) => {
+    try {
+      await BaseCrudService.update<Notifications>('notifications', {
+        _id: notificationId,
+        isRead: true,
+      });
+      loadGuideData();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await BaseCrudService.delete('notifications', notificationId);
+      loadGuideData();
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  const getFilteredBookings = () => {
+    if (filter === 'all') return bookings;
+    return bookings.filter(b => {
+      if (filter === 'pending') return b.bookingStatus === 'Pending';
+      if (filter === 'confirmed') return b.bookingStatus === 'Confirmed';
+      if (filter === 'cancelled') return b.bookingStatus === 'Cancelled';
+      return true;
+    });
+  };
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'Confirmed':
+        return 'bg-green-100 text-green-800';
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'Confirmed':
+        return <CheckCircle size={18} />;
+      case 'Pending':
+        return <Clock3 size={18} />;
+      case 'Cancelled':
+        return <XCircle size={18} />;
+      default:
+        return null;
+    }
   };
 
   if (loading) {
@@ -107,7 +123,7 @@ export default function GuideDashboardPage() {
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="font-paragraph text-base text-foreground">Loading dashboard...</p>
+            <p className="font-paragraph text-base text-foreground">Loading your dashboard...</p>
           </div>
         </div>
         <Footer />
@@ -115,274 +131,238 @@ export default function GuideDashboardPage() {
     );
   }
 
+  const unreadNotifications = notifications.filter(n => !n.isRead);
+  const filteredBookings = getFilteredBookings();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
-          <div>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-heading text-5xl font-bold text-primary mb-4"
-            >
-              Guide Dashboard
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="font-paragraph text-lg text-foreground"
-            >
-              Manage your tours and connect with travelers
-            </motion.p>
-          </div>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12"
+        >
+          <h1 className="font-heading text-5xl font-bold text-primary mb-2">Guide Dashboard</h1>
+          <p className="font-paragraph text-lg text-foreground/70">
+            Manage your bookings and tour requests
+          </p>
+        </motion.div>
 
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12"
+        >
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+            <p className="font-paragraph text-sm text-foreground/70 mb-2">Total Bookings</p>
+            <p className="font-heading text-4xl font-bold text-primary">{bookings.length}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+            <p className="font-paragraph text-sm text-foreground/70 mb-2">Confirmed</p>
+            <p className="font-heading text-4xl font-bold text-green-600">
+              {bookings.filter(b => b.bookingStatus === 'Confirmed').length}
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+            <p className="font-paragraph text-sm text-foreground/70 mb-2">Pending</p>
+            <p className="font-heading text-4xl font-bold text-yellow-600">
+              {bookings.filter(b => b.bookingStatus === 'Pending').length}
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+            <p className="font-paragraph text-sm text-foreground/70 mb-2">Notifications</p>
+            <p className="font-heading text-4xl font-bold text-secondary">
+              {unreadNotifications.length}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Notifications Section */}
+        {unreadNotifications.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="mb-12"
           >
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <button
-                  onClick={handleCreateTour}
-                  className="px-6 py-3 bg-secondary text-secondary-foreground font-paragraph text-base rounded-full hover:bg-secondary/90 transition-all inline-flex items-center gap-2"
+            <h2 className="font-heading text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+              <Bell size={24} />
+              Recent Notifications
+            </h2>
+            <div className="space-y-4">
+              {unreadNotifications.map((notification, index) => (
+                <motion.div
+                  key={notification._id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-lavenderaccent/20 border border-primary/20 rounded-xl p-6"
                 >
-                  <Plus size={20} />
-                  Create New Tour
-                </button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="font-heading text-2xl font-bold text-primary">
-                    {editingTour ? 'Edit Tour' : 'Create New Tour'}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-                  <div>
-                    <Label htmlFor="tourName" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                      Tour Name
-                    </Label>
-                    <Input
-                      id="tourName"
-                      value={formData.tourName}
-                      onChange={(e) => setFormData({ ...formData, tourName: e.target.value })}
-                      required
-                      className="font-paragraph"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="tourDescription" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                      Description
-                    </Label>
-                    <Textarea
-                      id="tourDescription"
-                      value={formData.tourDescription}
-                      onChange={(e) => setFormData({ ...formData, tourDescription: e.target.value })}
-                      rows={4}
-                      required
-                      className="font-paragraph"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="location" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                        Location
-                      </Label>
-                      <Input
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        required
-                        className="font-paragraph"
-                      />
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-heading text-lg font-bold text-primary mb-2">
+                        {notification.notificationType}
+                      </h3>
+                      <p className="font-paragraph text-base text-foreground mb-2">
+                        {notification.message}
+                      </p>
+                      {notification.touristName && (
+                        <p className="font-paragraph text-sm text-foreground/70">
+                          From: <span className="font-semibold">{notification.touristName}</span>
+                        </p>
+                      )}
                     </div>
-
-                    <div>
-                      <Label htmlFor="pricePerPerson" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                        Price per Person ($)
-                      </Label>
-                      <Input
-                        id="pricePerPerson"
-                        type="number"
-                        value={formData.pricePerPerson}
-                        onChange={(e) => setFormData({ ...formData, pricePerPerson: Number(e.target.value) })}
-                        required
-                        className="font-paragraph"
-                      />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleMarkNotificationRead(notification._id)}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-paragraph text-sm font-semibold"
+                      >
+                        Mark Read
+                      </button>
+                      <button
+                        onClick={() => handleDeleteNotification(notification._id)}
+                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="durationHours" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                        Duration (hours)
-                      </Label>
-                      <Input
-                        id="durationHours"
-                        type="number"
-                        value={formData.durationHours}
-                        onChange={(e) => setFormData({ ...formData, durationHours: Number(e.target.value) })}
-                        required
-                        className="font-paragraph"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="nextAvailableDate" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                        Next Available Date
-                      </Label>
-                      <Input
-                        id="nextAvailableDate"
-                        type="date"
-                        value={formData.nextAvailableDate}
-                        onChange={(e) => setFormData({ ...formData, nextAvailableDate: e.target.value })}
-                        required
-                        className="font-paragraph"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="mainImage" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                      Main Image URL
-                    </Label>
-                    <Input
-                      id="mainImage"
-                      value={formData.mainImage}
-                      onChange={(e) => setFormData({ ...formData, mainImage: e.target.value })}
-                      placeholder="https://static.wixstatic.com/media/70fb72_ac625057124b48eab5f8ac29a51883db~mv2.png?originWidth=256&originHeight=192"
-                      className="font-paragraph"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="whatsIncluded" className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                      What's Included (one item per line)
-                    </Label>
-                    <Textarea
-                      id="whatsIncluded"
-                      value={formData.whatsIncluded}
-                      onChange={(e) => setFormData({ ...formData, whatsIncluded: e.target.value })}
-                      rows={4}
-                      placeholder="Professional guide&#10;Transportation&#10;Entrance fees&#10;Refreshments"
-                      className="font-paragraph"
-                    />
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <button
-                      type="submit"
-                      className="flex-1 px-6 py-3 bg-primary text-primary-foreground font-paragraph text-base rounded-full hover:bg-primary/90 transition-all"
-                    >
-                      {editingTour ? 'Update Tour' : 'Create Tour'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsDialogOpen(false)}
-                      className="px-6 py-3 border border-primary text-primary font-paragraph text-base rounded-full hover:bg-primary/10 transition-all"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
-        </div>
+        )}
 
-        {/* Tours List */}
-        {tours.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-primary/10">
-            <p className="font-paragraph text-lg text-foreground mb-6">You haven't created any tours yet.</p>
+        {/* Filter Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex gap-4 mb-8 flex-wrap"
+        >
+          {(['all', 'pending', 'confirmed', 'cancelled'] as const).map((tab) => (
             <button
-              onClick={handleCreateTour}
-              className="px-6 py-3 bg-secondary text-secondary-foreground font-paragraph text-base rounded-full hover:bg-secondary/90 transition-all inline-flex items-center gap-2"
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-6 py-3 rounded-full font-paragraph text-base font-semibold transition-all ${
+                filter === tab
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-white border border-primary/20 text-foreground hover:border-primary'
+              }`}
             >
-              <Plus size={20} />
-              Create Your First Tour
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab !== 'all' && ` (${bookings.filter(b => {
+                if (tab === 'pending') return b.bookingStatus === 'Pending';
+                if (tab === 'confirmed') return b.bookingStatus === 'Confirmed';
+                if (tab === 'cancelled') return b.bookingStatus === 'Cancelled';
+                return false;
+              }).length})`}
             </button>
-          </div>
+          ))}
+        </motion.div>
+
+        {/* Bookings List */}
+        {filteredBookings.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16 bg-white rounded-2xl border border-primary/10"
+          >
+            <Calendar size={48} className="text-primary/30 mx-auto mb-4" />
+            <p className="font-paragraph text-lg text-foreground">
+              {bookings.length === 0
+                ? 'No bookings yet. Promote your profile to get started!'
+                : 'No bookings match this filter.'}
+            </p>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
-            {tours.map((tour, index) => (
+          <div className="space-y-6">
+            {filteredBookings.map((booking, index) => (
               <motion.div
-                key={tour._id}
+                key={booking._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10 hover:shadow-md transition-all"
+                className="bg-white rounded-2xl p-8 shadow-sm border border-primary/10 hover:shadow-lg transition-all"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Tour Image */}
-                  {tour.mainImage && (
-                    <div className="lg:col-span-3">
-                      <div className="aspect-[4/3] rounded-xl overflow-hidden">
-                        <Image
-                          src={tour.mainImage}
-                          alt={tour.tourName || 'Tour'}
-                          className="w-full h-full object-cover"
-                          width={300}
-                        />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Booking Details */}
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <p className="font-heading text-2xl font-bold text-primary mb-2">
+                        {booking.touristReference || 'Unknown Tourist'}
+                      </p>
+                      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(booking.bookingStatus)}`}>
+                        {getStatusIcon(booking.bookingStatus)}
+                        {booking.bookingStatus || 'Unknown'}
                       </div>
                     </div>
-                  )}
 
-                  {/* Tour Details */}
-                  <div className={tour.mainImage ? 'lg:col-span-7' : 'lg:col-span-10'}>
-                    <h3 className="font-heading text-2xl font-bold text-primary mb-3">
-                      {tour.tourName}
-                    </h3>
-                    
-                    <p className="font-paragraph text-base text-foreground mb-4 line-clamp-2">
-                      {tour.tourDescription}
-                    </p>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="flex items-center gap-3">
+                        <Calendar size={20} className="text-secondary" />
+                        <div>
+                          <p className="font-paragraph text-sm text-foreground/70">Date</p>
+                          <p className="font-heading text-base font-semibold text-foreground">
+                            {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                      </div>
 
-                    <div className="flex flex-wrap gap-4">
-                      {tour.location && (
-                        <div className="flex items-center gap-2 text-foreground">
-                          <MapPin size={16} className="text-secondary" />
-                          <span className="font-paragraph text-sm">{tour.location}</span>
+                      <div className="flex items-center gap-3">
+                        <Clock size={20} className="text-secondary" />
+                        <div>
+                          <p className="font-paragraph text-sm text-foreground/70">Time</p>
+                          <p className="font-heading text-base font-semibold text-foreground">
+                            {booking.bookingTime || 'N/A'}
+                          </p>
                         </div>
-                      )}
-                      
-                      {tour.durationHours && (
-                        <div className="flex items-center gap-2 text-foreground">
-                          <Clock size={16} className="text-secondary" />
-                          <span className="font-paragraph text-sm">{tour.durationHours} hours</span>
-                        </div>
-                      )}
-                      
-                      {tour.pricePerPerson && (
-                        <div className="flex items-center gap-2 text-foreground">
-                          <DollarSign size={16} className="text-secondary" />
-                          <span className="font-paragraph text-sm font-semibold">{tour.pricePerPerson} per person</span>
-                        </div>
-                      )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <MapPin size={20} className="text-secondary" />
+                      <div>
+                        <p className="font-paragraph text-sm text-foreground/70">Duration</p>
+                        <p className="font-heading text-base font-semibold text-foreground">
+                          {booking.durationHours} hour{booking.durationHours !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="lg:col-span-2 flex lg:flex-col gap-2 justify-end">
-                    <button
-                      onClick={() => handleEditTour(tour)}
-                      className="px-4 py-2 border border-primary text-primary font-paragraph text-sm rounded-full hover:bg-primary hover:text-primary-foreground transition-all inline-flex items-center gap-2"
-                    >
-                      <Edit size={16} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTour(tour._id)}
-                      className="px-4 py-2 border border-destructive text-destructive font-paragraph text-sm rounded-full hover:bg-destructive hover:text-destructiveforeground transition-all inline-flex items-center gap-2"
-                    >
-                      <Trash2 size={16} />
-                      Delete
-                    </button>
+                  {/* Price and Actions */}
+                  <div className="md:col-span-1 flex flex-col justify-between">
+                    <div>
+                      <p className="font-paragraph text-sm text-foreground/70 mb-1">Total Price</p>
+                      <p className="font-heading text-3xl font-bold text-secondary">
+                        ₹{booking.totalPrice?.toLocaleString('en-IN') || '0'}
+                      </p>
+                    </div>
+
+                    {booking.bookingStatus === 'Pending' && (
+                      <div className="flex flex-col gap-3 mt-6">
+                        <button
+                          onClick={() => handleBookingStatus(booking._id, 'Confirmed')}
+                          className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 justify-center font-paragraph text-sm font-semibold"
+                        >
+                          <CheckCircle size={18} />
+                          Accept Booking
+                        </button>
+                        <button
+                          onClick={() => handleBookingStatus(booking._id, 'Cancelled')}
+                          className="px-4 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2 justify-center font-paragraph text-sm font-semibold"
+                        >
+                          <XCircle size={18} />
+                          Decline Booking
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
