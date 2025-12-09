@@ -2,21 +2,24 @@ import { useEffect, useState } from 'react';
 import { useMember } from '@/integrations';
 import { useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
-import { Bookings, Guides, Notifications } from '@/entities';
+import { Bookings, Guides, Notifications, Tourists } from '@/entities';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ChatBox from '@/components/ChatBox';
 import { Image } from '@/components/ui/image';
-import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2, AlertCircle, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function GuideDashboardPage() {
   const { member } = useMember();
   const navigate = useNavigate();
   const [guide, setGuide] = useState<Guides | null>(null);
-  const [bookings, setBookings] = useState<Bookings[]>([]);
+  const [bookings, setBookings] = useState<(Bookings & { tourist?: Tourists })[]>([]);
   const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<(Bookings & { tourist?: Tourists }) | null>(null);
 
   useEffect(() => {
     loadGuideData();
@@ -36,10 +39,23 @@ export default function GuideDashboardPage() {
         return;
       }
 
-      // Get bookings for this guide
+      // Get bookings for this guide with tourist details
       const { items: allBookings } = await BaseCrudService.getAll<Bookings>('bookings');
       const guideBookings = allBookings.filter(b => b.guideReference === userGuide._id);
-      setBookings(guideBookings);
+      
+      // Load tourist details for each booking
+      const bookingsWithTourists = await Promise.all(
+        guideBookings.map(async (booking) => {
+          if (booking.touristReference) {
+            const { items: tourists } = await BaseCrudService.getAll<Tourists>('tourists');
+            const tourist = tourists.find(t => t.email === booking.touristReference);
+            return { ...booking, tourist };
+          }
+          return booking;
+        })
+      );
+      
+      setBookings(bookingsWithTourists);
 
       // Get notifications for this guide
       const { items: allNotifications } = await BaseCrudService.getAll<Notifications>('notifications');
@@ -380,6 +396,18 @@ export default function GuideDashboardPage() {
                         </button>
                       </div>
                     )}
+                    {booking.bookingStatus !== 'Cancelled' && (
+                      <button
+                        onClick={() => {
+                          setSelectedBooking(booking);
+                          setChatOpen(true);
+                        }}
+                        className="px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 justify-center font-paragraph text-sm font-semibold mt-3"
+                      >
+                        <MessageCircle size={18} />
+                        Message Tourist
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -387,6 +415,18 @@ export default function GuideDashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Chat Box */}
+      {selectedBooking && (
+        <ChatBox
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          bookingId={selectedBooking._id}
+          otherUserEmail={selectedBooking.touristReference || ''}
+          otherUserName={selectedBooking.tourist?.firstName || 'Tourist'}
+          userType="guide"
+        />
+      )}
 
       <Footer />
     </div>

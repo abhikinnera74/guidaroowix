@@ -60,9 +60,8 @@ export default function FindGuidePage() {
   const loadGuides = async () => {
     setLoading(true);
     const { items } = await BaseCrudService.getAll<Guides>('guides');
-    // Only show verified and active guides
-    const verifiedGuides = items.filter(guide => guide.isVerified && guide.isActive);
-    setGuides(verifiedGuides);
+    // Show all guides (no verification requirement)
+    setGuides(items);
     setLoading(false);
   };
 

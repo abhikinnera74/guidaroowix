@@ -11,6 +11,8 @@ export interface Bookings {
   _id: string;
   _createdDate?: Date;
   _updatedDate?: Date;
+  /** @wixFieldType text */
+  paymentMethod?: string;
   /** @wixFieldType date */
   bookingDate?: Date | string;
   /** @wixFieldType time */
@@ -57,6 +59,10 @@ export interface Guides {
   _id: string;
   _createdDate?: Date;
   _updatedDate?: Date;
+  /** @wixFieldType boolean */
+  isVerified?: boolean;
+  /** @wixFieldType boolean */
+  isActive?: boolean;
   /** @wixFieldType text */
   city?: string;
   /** @wixFieldType number */
@@ -79,10 +85,29 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
-  /** @wixFieldType boolean */
-  isVerified?: boolean;
-  /** @wixFieldType boolean */
-  isActive?: boolean;
+}
+
+
+/**
+ * Collection ID: messages
+ * Interface for Messages
+ */
+export interface Messages {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  senderEmail?: string;
+  /** @wixFieldType text */
+  receiverEmail?: string;
+  /** @wixFieldType text */
+  message?: string;
+  /** @wixFieldType datetime */
+  timestamp?: Date | string;
+  /** @wixFieldType text */
+  bookingId?: string;
+  /** @wixFieldType text */
+  senderType?: string;
 }
 
 
@@ -162,4 +187,27 @@ export interface Tours {
   nextAvailableDate?: Date | string;
   /** @wixFieldType text */
   whatsIncluded?: string;
+}
+
+
+/**
+ * Collection ID: messages
+ * Interface for Messages
+ */
+export interface Messages {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  senderEmail?: string;
+  /** @wixFieldType text */
+  receiverEmail?: string;
+  /** @wixFieldType text */
+  message?: string;
+  /** @wixFieldType datetime */
+  timestamp?: Date | string;
+  /** @wixFieldType text */
+  bookingId?: string;
+  /** @wixFieldType text */
+  senderType?: string;
 }

@@ -6,7 +6,7 @@ import { useMember } from '@/integrations';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { ArrowLeft, Calendar, Clock, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Users, CreditCard, Banknote } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,7 @@ export default function BookingPage() {
     date: '',
     time: '',
     duration: 1,
+    paymentMethod: 'cash', // 'card' or 'cash'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,7 +64,8 @@ export default function BookingPage() {
         totalPrice: calculateTotal(),
         guideReference: guide._id,
         touristReference: member.loginEmail || 'tourist',
-        bookingStatus: 'Confirmed',
+        bookingStatus: 'Pending',
+        paymentMethod: bookingData.paymentMethod,
       });
 
       // Create notification for guide
@@ -81,8 +83,8 @@ export default function BookingPage() {
       });
 
       // Show success message and redirect
-      alert('Booking confirmed! The guide will receive a notification.');
-      navigate('/tours');
+      alert(`Booking confirmed! Payment method: ${bookingData.paymentMethod === 'cash' ? 'Cash on Delivery' : 'Card Payment'}. The guide will receive a notification.`);
+      navigate('/dashboard');
     } catch (error) {
       console.error('Booking error:', error);
       alert('Failed to create booking. Please try again.');
@@ -295,6 +297,48 @@ export default function BookingPage() {
                         ₹{calculateTotal()}
                       </span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Payment Method Selection */}
+                <div>
+                  <Label className="font-paragraph text-sm font-semibold text-foreground mb-4 block">
+                    Payment Method
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Cash on Delivery */}
+                    <motion.button
+                      type="button"
+                      onClick={() => setBookingData({ ...bookingData, paymentMethod: 'cash' })}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        bookingData.paymentMethod === 'cash'
+                          ? 'border-secondary bg-secondary/10'
+                          : 'border-primary/20 hover:border-primary/40'
+                      }`}
+                    >
+                      <Banknote size={24} className={`mx-auto mb-2 ${bookingData.paymentMethod === 'cash' ? 'text-secondary' : 'text-foreground'}`} />
+                      <p className="font-heading text-sm font-bold text-foreground">Cash on Delivery</p>
+                      <p className="font-paragraph text-xs text-foreground/70">Pay when guide arrives</p>
+                    </motion.button>
+
+                    {/* Card Payment */}
+                    <motion.button
+                      type="button"
+                      onClick={() => setBookingData({ ...bookingData, paymentMethod: 'card' })}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        bookingData.paymentMethod === 'card'
+                          ? 'border-secondary bg-secondary/10'
+                          : 'border-primary/20 hover:border-primary/40'
+                      }`}
+                    >
+                      <CreditCard size={24} className={`mx-auto mb-2 ${bookingData.paymentMethod === 'card' ? 'text-secondary' : 'text-foreground'}`} />
+                      <p className="font-heading text-sm font-bold text-foreground">Card Payment</p>
+                      <p className="font-paragraph text-xs text-foreground/70">Pay now securely</p>
+                    </motion.button>
                   </div>
                 </div>
 

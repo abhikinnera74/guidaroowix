@@ -4,8 +4,9 @@ import { BaseCrudService } from '@/integrations';
 import { Bookings, Guides } from '@/entities';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ChatBox from '@/components/ChatBox';
 import { Image } from '@/components/ui/image';
-import { Calendar, Clock, MapPin, Trash2, CheckCircle, Clock3, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Trash2, CheckCircle, Clock3, AlertCircle, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TouristDashboardPage() {
@@ -13,6 +14,8 @@ export default function TouristDashboardPage() {
   const [bookings, setBookings] = useState<(Bookings & { guide?: Guides })[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<(Bookings & { guide?: Guides }) | null>(null);
 
   useEffect(() => {
     loadBookings();
@@ -266,16 +269,33 @@ export default function TouristDashboardPage() {
                       <p className="font-paragraph text-xs text-foreground/70 mt-1">
                         {booking.durationHours} hour{booking.durationHours !== 1 ? 's' : ''}
                       </p>
+                      {booking.paymentMethod && (
+                        <p className="font-paragraph text-xs text-foreground/70 mt-2">
+                          <span className="font-semibold">Payment:</span> {booking.paymentMethod === 'cash' ? 'Cash on Delivery' : 'Card Payment'}
+                        </p>
+                      )}
                     </div>
 
                     {booking.bookingStatus !== 'Cancelled' && (
-                      <button
-                        onClick={() => handleCancelBooking(booking._id)}
-                        className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2 justify-center font-paragraph text-sm font-semibold"
-                      >
-                        <Trash2 size={16} />
-                        Cancel Booking
-                      </button>
+                      <div className="flex flex-col gap-2 mt-4">
+                        <button
+                          onClick={() => {
+                            setSelectedBooking(booking);
+                            setChatOpen(true);
+                          }}
+                          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 justify-center font-paragraph text-sm font-semibold"
+                        >
+                          <MessageCircle size={16} />
+                          Message Guide
+                        </button>
+                        <button
+                          onClick={() => handleCancelBooking(booking._id)}
+                          className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2 justify-center font-paragraph text-sm font-semibold"
+                        >
+                          <Trash2 size={16} />
+                          Cancel Booking
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -284,6 +304,18 @@ export default function TouristDashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Chat Box */}
+      {selectedBooking && (
+        <ChatBox
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          bookingId={selectedBooking._id}
+          otherUserEmail={selectedBooking.guide?.email || ''}
+          otherUserName={selectedBooking.guide?.fullName || 'Guide'}
+          userType="tourist"
+        />
+      )}
 
       <Footer />
     </div>
