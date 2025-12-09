@@ -2,6 +2,16 @@ import { MemberProvider } from '@/integrations';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { ScrollToTop } from '@/lib/scroll-to-top';
 import ErrorPage from '@/integrations/errorHandlers/ErrorPage';
+import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
+
+// Pages
+import HomePage from '@/components/pages/HomePage';
+import LoginPage from '@/components/pages/LoginPage';
+import GuideLoginPage from '@/components/pages/GuideLoginPage';
+import ToursPage from '@/components/pages/ToursPage';
+import TourDetailPage from '@/components/pages/TourDetailPage';
+import ProfilePage from '@/components/pages/ProfilePage';
+import GuideDashboardPage from '@/components/pages/GuideDashboardPage';
 
 // Layout component that includes ScrollToTop
 function Layout() {
@@ -21,7 +31,39 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <div>Wix Vibe</div>,
+        element: <HomePage />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "guide-login",
+        element: <GuideLoginPage />,
+      },
+      {
+        path: "tours",
+        element: <ToursPage />,
+      },
+      {
+        path: "tours/:id",
+        element: <TourDetailPage />,
+      },
+      {
+        path: "profile",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view your profile">
+            <ProfilePage />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "guide-dashboard",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in as a guide to access your dashboard">
+            <GuideDashboardPage />
+          </MemberProtectedRoute>
+        ),
       },
       {
         path: "*",
