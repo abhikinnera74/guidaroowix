@@ -188,26 +188,3 @@ export interface Tours {
   /** @wixFieldType text */
   whatsIncluded?: string;
 }
-
-
-/**
- * Collection ID: messages
- * Interface for Messages
- */
-export interface Messages {
-  _id: string;
-  _createdDate?: Date;
-  _updatedDate?: Date;
-  /** @wixFieldType text */
-  senderEmail?: string;
-  /** @wixFieldType text */
-  receiverEmail?: string;
-  /** @wixFieldType text */
-  message?: string;
-  /** @wixFieldType datetime */
-  timestamp?: Date | string;
-  /** @wixFieldType text */
-  bookingId?: string;
-  /** @wixFieldType text */
-  senderType?: string;
-}
