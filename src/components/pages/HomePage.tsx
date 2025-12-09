@@ -2,6 +2,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMember } from '@/integrations';
+import { BaseCrudService } from '@/integrations';
+import { Guides, GuideReviews } from '@/entities';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
@@ -46,7 +48,135 @@ const useParallax = (distance: number = 50) => {
   return { ref, y };
 };
 
-// --- 2. MAIN COMPONENT ---
+// --- 2. FEATURED GUIDES SECTION ---
+
+type FeaturedGuidesProps = {
+  guides: any[];
+};
+
+const FeaturedGuides: React.FC<FeaturedGuidesProps> = ({ guides }) => {
+  if (guides.length === 0) return null;
+
+  return (
+    <section className="w-full bg-white py-20">
+      <div className="max-w-[120rem] mx-auto px-6 lg:px-12">
+        <div className="text-center mb-12">
+          <h2 className="font-heading text-5xl font-bold text-primary mb-4">Featured Guides</h2>
+          <p className="font-paragraph text-xl text-foreground max-w-2xl mx-auto">
+            Meet our top-rated guides ready to show you the world
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {guides.slice(0, 3).map((guide, index) => (
+            <AnimatedElement key={guide._id} className="h-full">
+              <a href={`/guide/${guide._id}`} className="group block h-full">
+                <div className="bg-background rounded-2xl overflow-hidden shadow-sm border border-primary/10 hover:shadow-lg transition-all h-full flex flex-col">
+                  {guide.profilePicture && (
+                    <div className="aspect-square overflow-hidden">
+                      <Image src={guide.profilePicture} alt={guide.fullName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    </div>
+                  )}
+
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="font-heading text-2xl font-bold text-primary mb-2 group-hover:text-secondary transition-colors">
+                      {guide.fullName}
+                    </h3>
+
+                    {guide.specialty && (
+                      <p className="font-paragraph text-sm text-secondary mb-3">{guide.specialty}</p>
+                    )}
+
+                    <p className="font-paragraph text-base text-foreground mb-4 line-clamp-2 flex-1">
+                      {guide.bio}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-primary/10">
+                      <div className="flex items-center gap-1">
+                        <Star size={18} className="text-secondary fill-secondary" />
+                        <span className="font-heading font-bold text-primary">
+                          {guide.averageRating?.toFixed(1) || 'N/A'}
+                        </span>
+                      </div>
+                      {guide.hourlyRate && (
+                        <span className="font-heading text-lg font-bold text-secondary">
+                          ${guide.hourlyRate}/hr
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </AnimatedElement>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <a
+            href="/find-guide"
+            className="px-8 py-4 bg-primary text-primary-foreground font-paragraph text-lg rounded-full hover:bg-primary/90 transition-all inline-flex items-center gap-2"
+          >
+            Explore All Guides <ArrowRight size={20} />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- 3. TESTIMONIALS SECTION ---
+
+type TestimonialsProps = {
+  reviews: any[];
+};
+
+const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
+  if (reviews.length === 0) return null;
+
+  return (
+    <section className="w-full max-w-[120rem] mx-auto px-6 lg:px-12 py-20">
+      <div className="text-center mb-12">
+        <h2 className="font-heading text-5xl font-bold text-primary mb-4">What Travelers Say</h2>
+        <p className="font-paragraph text-xl text-foreground max-w-2xl mx-auto">
+          Real experiences from real travelers
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {reviews.slice(0, 3).map((review, index) => (
+          <AnimatedElement key={review._id} className="h-full">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-primary/10 h-full flex flex-col">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={18}
+                    className={i < (review.rating || 0) ? 'text-secondary fill-secondary' : 'text-primary/20'}
+                  />
+                ))}
+              </div>
+
+              <p className="font-paragraph text-lg text-foreground mb-6 flex-1">
+                "{review.reviewText}"
+              </p>
+
+              <div>
+                <p className="font-heading text-base font-bold text-primary">
+                  {review.touristName}
+                </p>
+                <p className="font-paragraph text-sm text-foreground/70">
+                  Toured with {review.guideName}
+                </p>
+              </div>
+            </div>
+          </AnimatedElement>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// --- 4. MAIN COMPONENT ---
 
 export default function HomePage() {
   // --- DATA FIDELITY PROTOCOL ---
@@ -62,6 +192,32 @@ export default function HomePage() {
     damping: 30,
     restDelta: 0.001
   });
+
+  // State for guides and reviews
+  const [guides, setGuides] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Fetch guides and reviews
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [guidesData, reviewsData] = await Promise.all([
+          BaseCrudService.getAll<Guides>('guides'),
+          BaseCrudService.getAll<GuideReviews>('guidereviews')
+        ]);
+        
+        setGuides(guidesData.items || []);
+        setReviews(reviewsData.items || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background font-paragraph overflow-clip selection:bg-lavenderaccent selection:text-primary">
@@ -388,6 +544,12 @@ export default function HomePage() {
         </section>
 
       </main>
+
+      {/* Featured Guides Section */}
+      {!loadingData && <FeaturedGuides guides={guides} />}
+
+      {/* Testimonials Section */}
+      {!loadingData && <Testimonials reviews={reviews} />}
 
       <Footer />
     </div>

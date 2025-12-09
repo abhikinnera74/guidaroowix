@@ -4,6 +4,52 @@
  */
 
 /**
+ * Collection ID: bookings
+ * Interface for Bookings
+ */
+export interface Bookings {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType date */
+  bookingDate?: Date | string;
+  /** @wixFieldType time */
+  bookingTime?: string;
+  /** @wixFieldType number */
+  durationHours?: number;
+  /** @wixFieldType number */
+  totalPrice?: number;
+  /** @wixFieldType text */
+  guideReference?: string;
+  /** @wixFieldType text */
+  touristReference?: string;
+  /** @wixFieldType text */
+  bookingStatus?: string;
+}
+
+
+/**
+ * Collection ID: guidereviews
+ * Interface for GuideReviews
+ */
+export interface GuideReviews {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType number */
+  rating?: number;
+  /** @wixFieldType text */
+  reviewText?: string;
+  /** @wixFieldType date */
+  reviewDate?: Date | string;
+  /** @wixFieldType text */
+  touristName?: string;
+  /** @wixFieldType text */
+  guideName?: string;
+}
+
+
+/**
  * Collection ID: guides
  * Interface for Guides
  */
@@ -25,6 +71,43 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
+  /** @wixFieldType text */
+  specialty?: string;
+  /** @wixFieldType number */
+  hourlyRate?: number;
+  /** @wixFieldType text */
+  city?: string;
+  /** @wixFieldType number */
+  averageRating?: number;
+}
+
+
+/**
+ * Collection ID: notifications
+ * Interface for Notifications
+ */
+export interface Notifications {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  notificationType?: string;
+  /** @wixFieldType text */
+  message?: string;
+  /** @wixFieldType boolean */
+  isRead?: boolean;
+  /** @wixFieldType datetime */
+  createdAt?: Date | string;
+  /** @wixFieldType text */
+  touristName?: string;
+  /** @wixFieldType date */
+  bookingDate?: Date | string;
+  /** @wixFieldType time */
+  bookingTime?: string;
+  /** @wixFieldType number */
+  bookingDuration?: number;
+  /** @wixFieldType number */
+  bookingPrice?: number;
 }
 
 

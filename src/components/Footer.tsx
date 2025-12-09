@@ -23,6 +23,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/find-guide" className="font-paragraph text-base opacity-90 hover:opacity-100 transition-opacity">
+                  Find a Guide
+                </Link>
+              </li>
+              <li>
                 <Link to="/login" className="font-paragraph text-base opacity-90 hover:opacity-100 transition-opacity">
                   Tourist Login
                 </Link>

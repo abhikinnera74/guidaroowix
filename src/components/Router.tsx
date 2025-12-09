@@ -12,6 +12,9 @@ import ToursPage from '@/components/pages/ToursPage';
 import TourDetailPage from '@/components/pages/TourDetailPage';
 import ProfilePage from '@/components/pages/ProfilePage';
 import GuideDashboardPage from '@/components/pages/GuideDashboardPage';
+import FindGuidePage from '@/components/pages/FindGuidePage';
+import GuideProfilePage from '@/components/pages/GuideProfilePage';
+import BookingPage from '@/components/pages/BookingPage';
 
 // Layout component that includes ScrollToTop
 function Layout() {
@@ -62,6 +65,22 @@ const router = createBrowserRouter([
         element: (
           <MemberProtectedRoute messageToSignIn="Sign in as a guide to access your dashboard">
             <GuideDashboardPage />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "find-guide",
+        element: <FindGuidePage />,
+      },
+      {
+        path: "guide/:id",
+        element: <GuideProfilePage />,
+      },
+      {
+        path: "booking/:id",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to book a guide">
+            <BookingPage />
           </MemberProtectedRoute>
         ),
       },

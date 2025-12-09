@@ -29,6 +29,14 @@ export default function Header() {
             >
               Explore Tours
             </Link>
+            <Link 
+              to="/find-guide" 
+              className={`font-paragraph text-base transition-colors ${
+                isActive('/find-guide') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+              }`}
+            >
+              Find a Guide
+            </Link>
             
             {isAuthenticated ? (
               <>
@@ -103,6 +111,15 @@ export default function Header() {
                 }`}
               >
                 Explore Tours
+              </Link>
+              <Link 
+                to="/find-guide" 
+                onClick={() => setMobileMenuOpen(false)}
+                className={`font-paragraph text-base transition-colors ${
+                  isActive('/find-guide') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                }`}
+              >
+                Find a Guide
               </Link>
               
               {isAuthenticated ? (
