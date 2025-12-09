@@ -79,6 +79,10 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
+  /** @wixFieldType boolean */
+  isVerified?: boolean;
+  /** @wixFieldType boolean */
+  isActive?: boolean;
 }
 
 

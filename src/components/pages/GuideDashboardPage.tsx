@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useMember } from '@/integrations';
+import { useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { Bookings, Guides, Notifications } from '@/entities';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function GuideDashboardPage() {
   const { member } = useMember();
+  const navigate = useNavigate();
   const [guide, setGuide] = useState<Guides | null>(null);
   const [bookings, setBookings] = useState<Bookings[]>([]);
   const [notifications, setNotifications] = useState<Notifications[]>([]);
@@ -28,16 +30,20 @@ export default function GuideDashboardPage() {
       const userGuide = guides.find(g => g.email === member?.loginEmail);
       setGuide(userGuide || null);
 
-      if (userGuide) {
-        // Get bookings for this guide
-        const { items: allBookings } = await BaseCrudService.getAll<Bookings>('bookings');
-        const guideBookings = allBookings.filter(b => b.guideReference === userGuide._id);
-        setBookings(guideBookings);
-
-        // Get notifications for this guide
-        const { items: allNotifications } = await BaseCrudService.getAll<Notifications>('notifications');
-        setNotifications(allNotifications);
+      // If guide doesn't exist, redirect to onboarding
+      if (!userGuide) {
+        navigate('/guide-onboarding');
+        return;
       }
+
+      // Get bookings for this guide
+      const { items: allBookings } = await BaseCrudService.getAll<Bookings>('bookings');
+      const guideBookings = allBookings.filter(b => b.guideReference === userGuide._id);
+      setBookings(guideBookings);
+
+      // Get notifications for this guide
+      const { items: allNotifications } = await BaseCrudService.getAll<Notifications>('notifications');
+      setNotifications(allNotifications);
     } catch (error) {
       console.error('Error loading guide data:', error);
     } finally {
@@ -149,6 +155,17 @@ export default function GuideDashboardPage() {
           <p className="font-paragraph text-lg text-foreground/70">
             Manage your bookings and tour requests
           </p>
+          {guide && !guide.isVerified && (
+            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle size={20} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-heading text-sm font-bold text-yellow-900">Pending Verification</p>
+                <p className="font-paragraph text-sm text-yellow-800">
+                  Your profile is under review. You'll be notified once it's verified and approved.
+                </p>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Stats Cards */}

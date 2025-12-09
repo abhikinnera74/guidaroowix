@@ -5,9 +5,37 @@ import { Guides } from '@/entities';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { Star, MapPin, Globe, Zap, Search } from 'lucide-react';
+import { Star, MapPin, Globe, Zap, Search, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+
+const INDIAN_CITIES = [
+  'Delhi',
+  'Mumbai',
+  'Bangalore',
+  'Jaipur',
+  'Goa',
+  'Kolkata',
+  'Chennai',
+  'Hyderabad',
+  'Pune',
+  'Agra',
+  'Varanasi',
+  'Udaipur',
+  'Kochi',
+  'Ahmedabad',
+];
+
+const SPECIALTIES = [
+  'Heritage',
+  'Adventure',
+  'Food',
+  'Culture',
+  'Nature',
+  'Photography',
+  'Spiritual',
+  'Shopping',
+];
 
 export default function FindGuidePage() {
   const [guides, setGuides] = useState<Guides[]>([]);
@@ -32,7 +60,9 @@ export default function FindGuidePage() {
   const loadGuides = async () => {
     setLoading(true);
     const { items } = await BaseCrudService.getAll<Guides>('guides');
-    setGuides(items);
+    // Only show verified and active guides
+    const verifiedGuides = items.filter(guide => guide.isVerified && guide.isActive);
+    setGuides(verifiedGuides);
     setLoading(false);
   };
 
@@ -118,18 +148,25 @@ export default function FindGuidePage() {
           transition={{ delay: 0.2 }}
           className="bg-white rounded-2xl p-8 shadow-sm border border-primary/10 mb-12"
         >
-          <h2 className="font-heading text-2xl font-bold text-primary mb-6">Filter Guides</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Filter size={24} className="text-primary" />
+            <h2 className="font-heading text-2xl font-bold text-primary">Filter Guides</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div>
               <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
                 City
               </label>
-              <Input
-                placeholder="e.g., Paris, Tokyo"
+              <select
                 value={filters.city}
                 onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                className="font-paragraph"
-              />
+                className="w-full px-4 py-2 border border-primary/20 rounded-lg font-paragraph text-base focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">All Cities</option>
+                {INDIAN_CITIES.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -137,7 +174,7 @@ export default function FindGuidePage() {
                 Language
               </label>
               <Input
-                placeholder="e.g., English, French"
+                placeholder="e.g., Hindi, English, Tamil"
                 value={filters.language}
                 onChange={(e) => setFilters({ ...filters, language: e.target.value })}
                 className="font-paragraph"
@@ -148,12 +185,16 @@ export default function FindGuidePage() {
               <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
                 Specialty
               </label>
-              <Input
-                placeholder="e.g., History, Adventure"
+              <select
                 value={filters.specialty}
                 onChange={(e) => setFilters({ ...filters, specialty: e.target.value })}
-                className="font-paragraph"
-              />
+                className="w-full px-4 py-2 border border-primary/20 rounded-lg font-paragraph text-base focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">All Specialties</option>
+                {SPECIALTIES.map(specialty => (
+                  <option key={specialty} value={specialty}>{specialty}</option>
+                ))}
+              </select>
             </div>
 
             <div>

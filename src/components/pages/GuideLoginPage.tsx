@@ -11,7 +11,7 @@ export default function GuideLoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/guide-dashboard');
+      navigate('/guide-onboarding');
     }
   }, [isAuthenticated, navigate]);
 
@@ -40,6 +40,10 @@ export default function GuideLoginPage() {
             >
               Sign In as Guide
             </button>
+
+            <p className="font-paragraph text-xs text-foreground/70 text-center mt-4">
+              New guide? Sign in to create your profile and start earning!
+            </p>
 
             <div className="mt-8 pt-8 border-t border-primary/10 text-center">
               <p className="font-paragraph text-sm text-foreground mb-4">

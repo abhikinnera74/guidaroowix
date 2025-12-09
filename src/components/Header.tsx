@@ -57,6 +57,14 @@ export default function Header() {
                   My Bookings
                 </Link>
                 <Link 
+                  to="/guide-onboarding" 
+                  className={`font-paragraph text-base transition-colors ${
+                    isActive('/guide-onboarding') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  Become a Guide
+                </Link>
+                <Link 
                   to="/guide-dashboard" 
                   className={`font-paragraph text-base transition-colors ${
                     isActive('/guide-dashboard') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
@@ -149,6 +157,15 @@ export default function Header() {
                     }`}
                   >
                     My Bookings
+                  </Link>
+                  <Link 
+                    to="/guide-onboarding" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`font-paragraph text-base transition-colors ${
+                      isActive('/guide-onboarding') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                    }`}
+                  >
+                    Become a Guide
                   </Link>
                   <Link 
                     to="/guide-dashboard" 

@@ -8,6 +8,7 @@ import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 import HomePage from '@/components/pages/HomePage';
 import LoginPage from '@/components/pages/LoginPage';
 import GuideLoginPage from '@/components/pages/GuideLoginPage';
+import GuideOnboardingPage from '@/components/pages/GuideOnboardingPage';
 import ToursPage from '@/components/pages/ToursPage';
 import TourDetailPage from '@/components/pages/TourDetailPage';
 import ProfilePage from '@/components/pages/ProfilePage';
@@ -44,6 +45,14 @@ const router = createBrowserRouter([
       {
         path: "guide-login",
         element: <GuideLoginPage />,
+      },
+      {
+        path: "guide-onboarding",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to become a guide">
+            <GuideOnboardingPage />
+          </MemberProtectedRoute>
+        ),
       },
       {
         path: "tours",
