@@ -1,7 +1,7 @@
 import { useMember } from '@/integrations';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import Header from '@/components/Header';
+import { GuideHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Compass } from 'lucide-react';
 
@@ -17,7 +17,7 @@ export default function GuideLoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header />
+      <GuideHeader />
       
       <main className="flex-1 flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-md">
@@ -49,12 +49,12 @@ export default function GuideLoginPage() {
               <p className="font-paragraph text-sm text-foreground mb-4">
                 Are you a tourist?
               </p>
-              <button
-                onClick={() => navigate('/login')}
-                className="font-paragraph text-base text-primary hover:text-primary/80 transition-colors underline"
-              >
-                Sign in as a Tourist
-              </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="font-paragraph text-base text-primary hover:text-primary/80 transition-colors underline"
+            >
+              Sign in as a Tourist
+            </button>
             </div>
           </div>
         </div>

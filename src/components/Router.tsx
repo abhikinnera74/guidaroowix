@@ -15,8 +15,17 @@ import ProfilePage from '@/components/pages/ProfilePage';
 import GuideDashboardPage from '@/components/pages/GuideDashboardPage';
 import TouristDashboardPage from '@/components/pages/TouristDashboardPage';
 import FindGuidePage from '@/components/pages/FindGuidePage';
-import GuideProfilePage from '@/components/pages/GuideProfilePage';
+import GuideProfilePageOld from '@/components/pages/GuideProfilePage';
 import BookingPage from '@/components/pages/BookingPage';
+
+// New Tourist Pages
+import TouristProfilePage from '@/components/pages/TouristProfilePage';
+import TouristDashboardNewPage from '@/components/pages/TouristDashboardNewPage';
+
+// New Guide Pages
+import GuideProfilePageNew from '@/components/pages/GuideProfilePage';
+import GuideMyToursPage from '@/components/pages/GuideMyToursPage';
+import GuideBookingsPage from '@/components/pages/GuideBookingsPage';
 
 // Layout component that includes ScrollToTop
 function Layout() {
@@ -62,6 +71,7 @@ const router = createBrowserRouter([
         path: "tours/:id",
         element: <TourDetailPage />,
       },
+      // Old routes (kept for backward compatibility)
       {
         path: "profile",
         element: (
@@ -92,13 +102,55 @@ const router = createBrowserRouter([
       },
       {
         path: "guide/:id",
-        element: <GuideProfilePage />,
+        element: <GuideProfilePageOld />,
       },
       {
         path: "booking/:id",
         element: (
           <MemberProtectedRoute messageToSignIn="Sign in to book a guide">
             <BookingPage />
+          </MemberProtectedRoute>
+        ),
+      },
+      // New Tourist Routes
+      {
+        path: "tourist-profile",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view your profile">
+            <TouristProfilePage />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "tourist-dashboard",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view your bookings">
+            <TouristDashboardNewPage />
+          </MemberProtectedRoute>
+        ),
+      },
+      // New Guide Routes
+      {
+        path: "guide-profile",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view your profile">
+            <GuideProfilePageNew />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "guide-my-tours",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view your tours">
+            <GuideMyToursPage />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "guide-bookings",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Sign in to view bookings">
+            <GuideBookingsPage />
           </MemberProtectedRoute>
         ),
       },

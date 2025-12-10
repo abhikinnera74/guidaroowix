@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
 import { Bookings, Guides } from '@/entities';
-import Header from '@/components/Header';
+import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import ChatBox from '@/components/ChatBox';
 import { Image } from '@/components/ui/image';
@@ -105,7 +105,7 @@ export default function TouristDashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <TouristHeader />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -121,7 +121,7 @@ export default function TouristDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <TouristHeader />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         {/* Page Header */}

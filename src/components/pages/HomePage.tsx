@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
 import { Guides, GuideReviews } from '@/entities';
-import Header from '@/components/Header';
+import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
 import { ArrowRight, MapPin, Users, Star, Globe, Compass, Shield } from 'lucide-react';
@@ -227,7 +227,7 @@ export default function HomePage() {
         style={{ scaleX }}
       />
 
-      <Header />
+      <TouristHeader />
 
       <main className="w-full">
         {/* --- HERO SECTION --- */}
