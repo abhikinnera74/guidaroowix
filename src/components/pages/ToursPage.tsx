@@ -5,7 +5,7 @@ import { Tours } from '@/entities';
 import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
+import { MapPin, Clock, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ToursPage() {
@@ -58,7 +58,7 @@ export default function ToursPage() {
             transition={{ delay: 0.1 }}
             className="font-paragraph text-xl text-foreground max-w-3xl mx-auto"
           >
-            Discover unforgettable experiences with our expert local guides
+            Discover unforgettable experiences with our expert local guides across India
           </motion.p>
         </div>
 
@@ -128,9 +128,8 @@ export default function ToursPage() {
                       {tour.pricePerPerson && (
                         <div className="flex items-center justify-between pt-4 border-t border-primary/10">
                           <div className="flex items-center gap-2">
-                            <DollarSign size={20} className="text-primary" />
                             <span className="font-heading text-2xl font-bold text-primary">
-                              {tour.pricePerPerson}
+                              ₹{tour.pricePerPerson.toLocaleString('en-IN')}
                             </span>
                             <span className="font-paragraph text-sm text-foreground">per person</span>
                           </div>

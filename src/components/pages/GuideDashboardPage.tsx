@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useMember } from '@/integrations';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
-import { Bookings, Guides, Notifications, Tourists } from '@/entities';
+import { Bookings, Guides, Notifications, Tourists, GuideReviews, Messages } from '@/entities';
 import { GuideHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import ChatBox from '@/components/ChatBox';
 import { Image } from '@/components/ui/image';
-import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2, AlertCircle, MessageCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, CheckCircle, XCircle, Clock3, Bell, Trash2, AlertCircle, MessageCircle, TrendingUp, Star, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function GuideDashboardPage() {
@@ -16,6 +16,8 @@ export default function GuideDashboardPage() {
   const [guide, setGuide] = useState<Guides | null>(null);
   const [bookings, setBookings] = useState<(Bookings & { tourist?: Tourists })[]>([]);
   const [notifications, setNotifications] = useState<Notifications[]>([]);
+  const [reviews, setReviews] = useState<GuideReviews[]>([]);
+  const [messages, setMessages] = useState<Messages[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [chatOpen, setChatOpen] = useState(false);
@@ -60,6 +62,16 @@ export default function GuideDashboardPage() {
       // Get notifications for this guide
       const { items: allNotifications } = await BaseCrudService.getAll<Notifications>('notifications');
       setNotifications(allNotifications);
+
+      // Get reviews for this guide
+      const { items: allReviews } = await BaseCrudService.getAll<GuideReviews>('guidereviews');
+      const guideReviews = allReviews.filter(r => r.guideName === userGuide.fullName);
+      setReviews(guideReviews);
+
+      // Get messages for this guide
+      const { items: allMessages } = await BaseCrudService.getAll<Messages>('messages');
+      const guideMessages = allMessages.filter(m => m.receiverEmail === userGuide.email);
+      setMessages(guideMessages);
     } catch (error) {
       console.error('Error loading guide data:', error);
     } finally {
@@ -189,8 +201,15 @@ export default function GuideDashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12"
+          className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-12"
         >
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+            <p className="font-paragraph text-sm text-foreground/70 mb-2">Total Earnings</p>
+            <p className="font-heading text-3xl font-bold text-secondary">
+              ₹{bookings.filter(b => b.bookingStatus === 'Confirmed').reduce((sum, b) => sum + (b.totalPrice || 0), 0).toLocaleString('en-IN')}
+            </p>
+            <p className="font-paragraph text-xs text-foreground/50 mt-2">From confirmed bookings</p>
+          </div>
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
             <p className="font-paragraph text-sm text-foreground/70 mb-2">Total Bookings</p>
             <p className="font-heading text-4xl font-bold text-primary">{bookings.length}</p>
@@ -208,10 +227,11 @@ export default function GuideDashboardPage() {
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
-            <p className="font-paragraph text-sm text-foreground/70 mb-2">Notifications</p>
-            <p className="font-heading text-4xl font-bold text-secondary">
-              {unreadNotifications.length}
-            </p>
+            <p className="font-paragraph text-sm text-foreground/70 mb-2">Rating</p>
+            <div className="flex items-center gap-2">
+              <p className="font-heading text-3xl font-bold text-primary">{guide?.averageRating?.toFixed(1) || '0'}</p>
+              <Star size={20} className="text-yellow-500 fill-yellow-500" />
+            </div>
           </div>
         </motion.div>
 
@@ -267,6 +287,115 @@ export default function GuideDashboardPage() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Quick Actions Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mb-12"
+        >
+          <h2 className="font-heading text-2xl font-bold text-primary mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link to="/guide-my-tours" className="group">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-primary/10 hover:shadow-lg transition-all text-center">
+                <TrendingUp size={32} className="text-secondary mx-auto mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="font-heading text-lg font-bold text-primary mb-2">My Tours</h3>
+                <p className="font-paragraph text-sm text-foreground/70">Manage and create your tours</p>
+              </div>
+            </Link>
+            <Link to="/guide-bookings" className="group">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-primary/10 hover:shadow-lg transition-all text-center">
+                <Calendar size={32} className="text-secondary mx-auto mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="font-heading text-lg font-bold text-primary mb-2">All Bookings</h3>
+                <p className="font-paragraph text-sm text-foreground/70">View all your bookings</p>
+              </div>
+            </Link>
+            <Link to="/guide-profile" className="group">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-primary/10 hover:shadow-lg transition-all text-center">
+                <Star size={32} className="text-secondary mx-auto mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="font-heading text-lg font-bold text-primary mb-2">My Profile</h3>
+                <p className="font-paragraph text-sm text-foreground/70">Update your profile info</p>
+              </div>
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Recent Reviews Section */}
+        {reviews.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="mb-12"
+          >
+            <h2 className="font-heading text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+              <Star size={24} className="text-yellow-500" />
+              Recent Reviews
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {reviews.slice(0, 4).map((review, index) => (
+                <motion.div
+                  key={review._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-heading text-lg font-bold text-primary">{review.touristName}</p>
+                      <p className="font-paragraph text-sm text-foreground/70">{new Date(review.reviewDate || '').toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          className={i < (review.rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="font-paragraph text-base text-foreground">{review.reviewText}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Recent Messages Section */}
+        {messages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-12"
+          >
+            <h2 className="font-heading text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+              <Send size={24} />
+              Recent Messages
+            </h2>
+            <div className="bg-white rounded-2xl shadow-sm border border-primary/10 overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
+                {messages.slice(0, 5).map((message, index) => (
+                  <div
+                    key={message._id}
+                    className={`p-6 border-b border-primary/10 ${index % 2 === 0 ? 'bg-white' : 'bg-lavenderaccent/5'}`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="font-heading text-base font-bold text-primary">{message.senderEmail}</p>
+                      <p className="font-paragraph text-xs text-foreground/50">
+                        {new Date(message.timestamp || '').toLocaleString()}
+                      </p>
+                    </div>
+                    <p className="font-paragraph text-base text-foreground">{message.message}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}

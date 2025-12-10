@@ -3,6 +3,7 @@ import { useMember } from '@/integrations';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Image } from '@/components/ui/image';
 
 // Tourist Header
 export function TouristHeader() {
@@ -210,7 +211,13 @@ export function GuideHeader() {
       <div className="max-w-[120rem] mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-3">
+            <Image
+              src="https://static.wixstatic.com/media/70fb72_d108943d01d140aa94234ea9f7daca1e~mv2.png?id=guide-fox-logo"
+              alt="Guidaroo Fox Logo"
+              className="w-8 h-8"
+              width={32}
+            />
             <span className="font-heading text-2xl font-bold text-secondary">Guidaroo</span>
           </Link>
 
