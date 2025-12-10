@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { Guides } from '@/entities';
 import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { Star, MapPin, Globe, Zap, Search, Filter } from 'lucide-react';
+import { Star, MapPin, Globe, Zap, Search, Filter, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import { useMember } from '@/integrations';
 
 const INDIAN_CITIES = [
   'Delhi',
@@ -38,6 +39,8 @@ const SPECIALTIES = [
 ];
 
 export default function FindGuidePage() {
+  const { isAuthenticated, actions } = useMember();
+  const navigate = useNavigate();
   const [guides, setGuides] = useState<Guides[]>([]);
   const [filteredGuides, setFilteredGuides] = useState<Guides[]>([]);
   const [loading, setLoading] = useState(true);
@@ -319,6 +322,22 @@ export default function FindGuidePage() {
                           </span>
                         )}
                       </div>
+
+                      {/* Book Now Button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (!isAuthenticated) {
+                            actions.login();
+                          } else {
+                            navigate(`/booking/${guide._id}`);
+                          }
+                        }}
+                        className="mt-4 w-full px-4 py-3 bg-secondary text-secondary-foreground font-paragraph text-base rounded-lg hover:bg-secondary/90 transition-all flex items-center justify-center gap-2"
+                      >
+                        <BookOpen size={18} />
+                        Book Now
+                      </button>
                     </div>
                   </div>
                 </Link>

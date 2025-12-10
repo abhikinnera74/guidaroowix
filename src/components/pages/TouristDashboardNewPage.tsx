@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Bookings } from '@/entities';
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, User, DollarSign } from 'lucide-react';
+import { Calendar, MapPin, User, DollarSign, BookOpen, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TouristDashboardNewPage() {
@@ -47,6 +47,46 @@ export default function TouristDashboardNewPage() {
             Manage your tour bookings and upcoming adventures
           </p>
 
+          {/* Stats Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+          >
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70 mb-2">Total Bookings</p>
+                  <p className="font-heading text-4xl font-bold text-primary">{bookings.length}</p>
+                </div>
+                <BookOpen size={32} className="text-primary/20" />
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70 mb-2">Confirmed</p>
+                  <p className="font-heading text-4xl font-bold text-green-600">
+                    {bookings.filter(b => b.bookingStatus === 'Confirmed').length}
+                  </p>
+                </div>
+                <TrendingUp size={32} className="text-green-600/20" />
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70 mb-2">Total Spent</p>
+                  <p className="font-heading text-3xl font-bold text-secondary">
+                    ₹{bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0).toLocaleString('en-IN')}
+                  </p>
+                </div>
+                <DollarSign size={32} className="text-secondary/20" />
+              </div>
+            </div>
+          </motion.div>
+
           {loading ? (
             <div className="text-center py-12">
               <p className="font-paragraph text-foreground">Loading your bookings...</p>
@@ -57,26 +97,27 @@ export default function TouristDashboardNewPage() {
                 You haven't booked any tours yet.
               </p>
               <a
-                href="/tours"
+                href="/find-guide"
                 className="inline-block px-8 py-4 bg-primary text-primary-foreground font-paragraph text-lg rounded-full hover:bg-primary/90 transition-all"
               >
-                Explore Tours
+                Find a Guide
               </a>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {bookings.map((booking) => (
+              {bookings.map((booking, index) => (
                 <motion.div
                   key={booking._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10 hover:shadow-lg transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      booking.bookingStatus === 'confirmed' 
+                      booking.bookingStatus === 'Confirmed' 
                         ? 'bg-green-100 text-green-700'
-                        : booking.bookingStatus === 'pending'
+                        : booking.bookingStatus === 'Pending'
                         ? 'bg-yellow-100 text-yellow-700'
                         : 'bg-red-100 text-red-700'
                     }`}>
@@ -90,7 +131,7 @@ export default function TouristDashboardNewPage() {
                       <div>
                         <p className="font-paragraph text-sm text-foreground/70">Date</p>
                         <p className="font-paragraph font-semibold text-foreground">
-                          {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'TBD'}
+                          {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('en-IN') : 'TBD'}
                         </p>
                       </div>
                     </div>
@@ -110,10 +151,22 @@ export default function TouristDashboardNewPage() {
                       <div>
                         <p className="font-paragraph text-sm text-foreground/70">Total Price</p>
                         <p className="font-heading font-bold text-secondary text-lg">
-                          ${booking.totalPrice || '0'}
+                          ₹{booking.totalPrice?.toLocaleString('en-IN') || '0'}
                         </p>
                       </div>
                     </div>
+
+                    {booking.paymentMethod && (
+                      <div className="flex items-start gap-3">
+                        <MapPin size={20} className="text-secondary flex-shrink-0 mt-1" />
+                        <div>
+                          <p className="font-paragraph text-sm text-foreground/70">Payment Method</p>
+                          <p className="font-paragraph font-semibold text-foreground">
+                            {booking.paymentMethod === 'cash' ? 'Cash on Delivery' : booking.paymentMethod === 'card' ? 'Card Payment' : 'UPI Payment'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <button className="w-full mt-6 px-4 py-2 bg-primary text-primary-foreground font-paragraph rounded-full hover:bg-primary/90 transition-all">

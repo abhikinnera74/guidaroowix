@@ -6,7 +6,7 @@ import { useMember } from '@/integrations';
 import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
-import { ArrowLeft, Calendar, Clock, Users, CreditCard, Banknote } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Users, CreditCard, Banknote, Smartphone, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,9 +21,10 @@ export default function BookingPage() {
     date: '',
     time: '',
     duration: 1,
-    paymentMethod: 'cash', // 'card' or 'cash'
+    paymentMethod: 'cash', // 'card', 'upi', or 'cash'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -82,9 +83,13 @@ export default function BookingPage() {
         bookingPrice: calculateTotal(),
       });
 
-      // Show success message and redirect
-      alert(`Booking confirmed! Payment method: ${bookingData.paymentMethod === 'cash' ? 'Cash on Delivery' : 'Card Payment'}. The guide will receive a notification.`);
-      navigate('/dashboard');
+      // Show success confirmation
+      setBookingConfirmed(true);
+      
+      // Redirect after 3 seconds
+      setTimeout(() => {
+        navigate('/tourist-dashboard');
+      }, 3000);
     } catch (error) {
       console.error('Booking error:', error);
       alert('Failed to create booking. Please try again.');
@@ -123,6 +128,85 @@ export default function BookingPage() {
             </button>
           </div>
         </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Booking Confirmation Screen
+  if (bookingConfirmed) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <TouristHeader />
+        <main className="flex-1 flex items-center justify-center px-6 py-16">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full text-center"
+          >
+            <div className="bg-white rounded-3xl p-12 shadow-sm border border-primary/10">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring' }}
+                className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              >
+                <CheckCircle size={40} className="text-green-600" />
+              </motion.div>
+
+              <h1 className="font-heading text-3xl font-bold text-primary mb-4">
+                Booking Confirmed!
+              </h1>
+
+              <p className="font-paragraph text-base text-foreground mb-6">
+                Your booking with <span className="font-semibold">{guide.fullName}</span> has been confirmed.
+              </p>
+
+              <div className="bg-lavenderaccent/20 rounded-xl p-6 mb-6 text-left space-y-3">
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70">Date</p>
+                  <p className="font-heading text-lg font-bold text-primary">
+                    {new Date(bookingData.date).toLocaleDateString('en-IN', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70">Time</p>
+                  <p className="font-heading text-lg font-bold text-primary">{bookingData.time}</p>
+                </div>
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70">Duration</p>
+                  <p className="font-heading text-lg font-bold text-primary">{bookingData.duration} hour{bookingData.duration !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="border-t border-primary/20 pt-3">
+                  <p className="font-paragraph text-sm text-foreground/70">Total Amount</p>
+                  <p className="font-heading text-2xl font-bold text-secondary">₹{calculateTotal().toLocaleString('en-IN')}</p>
+                </div>
+                <div>
+                  <p className="font-paragraph text-sm text-foreground/70">Payment Method</p>
+                  <p className="font-heading text-lg font-bold text-primary">
+                    {bookingData.paymentMethod === 'cash' ? 'Cash on Delivery' : bookingData.paymentMethod === 'card' ? 'Card Payment' : 'UPI Payment'}
+                  </p>
+                </div>
+              </div>
+
+              <p className="font-paragraph text-sm text-foreground/70 mb-6">
+                The guide will receive your booking notification and confirm shortly. You'll be redirected to your dashboard in a moment.
+              </p>
+
+              <button
+                onClick={() => navigate('/tourist-dashboard')}
+                className="w-full px-6 py-3 bg-primary text-primary-foreground font-paragraph text-base rounded-full hover:bg-primary/90 transition-all"
+              >
+                Go to My Bookings
+              </button>
+            </div>
+          </motion.div>
+        </main>
         <Footer />
       </div>
     );
@@ -305,7 +389,7 @@ export default function BookingPage() {
                   <Label className="font-paragraph text-sm font-semibold text-foreground mb-4 block">
                     Payment Method
                   </Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     {/* Cash on Delivery */}
                     <motion.button
                       type="button"
@@ -319,8 +403,8 @@ export default function BookingPage() {
                       }`}
                     >
                       <Banknote size={24} className={`mx-auto mb-2 ${bookingData.paymentMethod === 'cash' ? 'text-secondary' : 'text-foreground'}`} />
-                      <p className="font-heading text-sm font-bold text-foreground">Cash on Delivery</p>
-                      <p className="font-paragraph text-xs text-foreground/70">Pay when guide arrives</p>
+                      <p className="font-heading text-sm font-bold text-foreground">Cash</p>
+                      <p className="font-paragraph text-xs text-foreground/70">On Delivery</p>
                     </motion.button>
 
                     {/* Card Payment */}
@@ -336,8 +420,25 @@ export default function BookingPage() {
                       }`}
                     >
                       <CreditCard size={24} className={`mx-auto mb-2 ${bookingData.paymentMethod === 'card' ? 'text-secondary' : 'text-foreground'}`} />
-                      <p className="font-heading text-sm font-bold text-foreground">Card Payment</p>
-                      <p className="font-paragraph text-xs text-foreground/70">Pay now securely</p>
+                      <p className="font-heading text-sm font-bold text-foreground">Card</p>
+                      <p className="font-paragraph text-xs text-foreground/70">Pay Securely</p>
+                    </motion.button>
+
+                    {/* UPI Payment */}
+                    <motion.button
+                      type="button"
+                      onClick={() => setBookingData({ ...bookingData, paymentMethod: 'upi' })}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        bookingData.paymentMethod === 'upi'
+                          ? 'border-secondary bg-secondary/10'
+                          : 'border-primary/20 hover:border-primary/40'
+                      }`}
+                    >
+                      <Smartphone size={24} className={`mx-auto mb-2 ${bookingData.paymentMethod === 'upi' ? 'text-secondary' : 'text-foreground'}`} />
+                      <p className="font-heading text-sm font-bold text-foreground">UPI</p>
+                      <p className="font-paragraph text-xs text-foreground/70">Instant Payment</p>
                     </motion.button>
                   </div>
                 </div>
