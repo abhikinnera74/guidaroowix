@@ -1,5 +1,5 @@
 import { useMember } from '@/integrations';
-import Header from '@/components/Header';
+import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
 import { User, Mail, Calendar } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <TouristHeader />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         <motion.div

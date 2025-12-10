@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { Guides, Bookings, Notifications } from '@/entities';
 import { useMember } from '@/integrations';
-import Header from '@/components/Header';
+import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
 import { ArrowLeft, Calendar, Clock, Users, CreditCard, Banknote } from 'lucide-react';
@@ -96,7 +96,7 @@ export default function BookingPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <TouristHeader />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -111,7 +111,7 @@ export default function BookingPage() {
   if (!guide) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <TouristHeader />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <p className="font-paragraph text-lg text-foreground mb-6">Guide not found</p>
@@ -130,7 +130,7 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <TouristHeader />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-12">
         {/* Back Button */}

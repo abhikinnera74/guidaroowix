@@ -3,7 +3,7 @@ import { useMember } from '@/integrations';
 import { useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { Bookings, Guides, Notifications, Tourists } from '@/entities';
-import Header from '@/components/Header';
+import { GuideHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import ChatBox from '@/components/ChatBox';
 import { Image } from '@/components/ui/image';
@@ -141,7 +141,7 @@ export default function GuideDashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <GuideHeader />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -158,7 +158,7 @@ export default function GuideDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <GuideHeader />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         {/* Page Header */}
