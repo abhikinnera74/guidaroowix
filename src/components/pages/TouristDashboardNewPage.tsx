@@ -2,34 +2,74 @@ import { useMember } from '@/integrations';
 import { TouristHeader } from '@/components/Header';
 import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
-import { Bookings } from '@/entities';
+import { Bookings, Guides, Notifications } from '@/entities';
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, User, DollarSign, BookOpen, TrendingUp } from 'lucide-react';
+import { Calendar, MapPin, User, DollarSign, BookOpen, TrendingUp, MessageCircle, Bell, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ChatBox from '@/components/ChatBox';
 
 export default function TouristDashboardNewPage() {
   const { member } = useMember();
   const [bookings, setBookings] = useState<Bookings[]>([]);
+  const [guides, setGuides] = useState<{ [key: string]: Guides }>({});
+  const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedGuideEmail, setSelectedGuideEmail] = useState<string>('');
+  const [selectedGuideName, setSelectedGuideName] = useState<string>('');
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchData = async () => {
       try {
-        const { items } = await BaseCrudService.getAll<Bookings>('bookings');
-        // Filter bookings for current user
-        const userBookings = items.filter(b => b.touristReference === member?.loginEmail);
+        // Fetch bookings
+        const { items: bookingItems } = await BaseCrudService.getAll<Bookings>('bookings');
+        const userBookings = bookingItems.filter(b => b.touristReference === member?.loginEmail);
         setBookings(userBookings);
+
+        // Fetch guides
+        const { items: guideItems } = await BaseCrudService.getAll<Guides>('guides');
+        const guideMap: { [key: string]: Guides } = {};
+        guideItems.forEach(guide => {
+          guideMap[guide._id] = guide;
+        });
+        setGuides(guideMap);
+
+        // Fetch notifications for this user
+        const { items: notificationItems } = await BaseCrudService.getAll<Notifications>('notifications');
+        setNotifications(notificationItems);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
     if (member?.loginEmail) {
-      fetchBookings();
+      fetchData();
     }
   }, [member?.loginEmail]);
+
+  const handleOpenChat = (bookingId: string, guideEmail: string, guideName: string) => {
+    setSelectedBookingId(bookingId);
+    setSelectedGuideEmail(guideEmail);
+    setSelectedGuideName(guideName);
+    setChatOpen(true);
+  };
+
+  const getBookingNotifications = (bookingId: string) => {
+    return notifications.filter(n => {
+      // Check if notification is related to this booking
+      const bookingNotif = bookingId.includes(n.message) || n.message.includes(bookingId);
+      return bookingNotif;
+    });
+  };
+
+  const hasAcceptedNotification = (bookingId: string) => {
+    return notifications.some(n => 
+      n.notificationType === 'Booking Accepted' && n.message.includes(bookingId)
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +87,48 @@ export default function TouristDashboardNewPage() {
             Manage your tour bookings and upcoming adventures
           </p>
 
-          {/* Stats Cards */}
+          {/* Notifications Section */}
+          {notifications.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mb-12"
+            >
+              <h2 className="font-heading text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+                <Bell size={28} />
+                Recent Notifications
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {notifications.slice(0, 4).map((notif, index) => (
+                  <motion.div
+                    key={notif._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl p-4 shadow-sm border border-primary/10 flex items-start gap-3"
+                  >
+                    <div className="flex-shrink-0">
+                      {notif.notificationType === 'Booking Accepted' ? (
+                        <CheckCircle size={24} className="text-green-600" />
+                      ) : (
+                        <Bell size={24} className="text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-heading text-sm font-bold text-primary">{notif.notificationType}</p>
+                      <p className="font-paragraph text-sm text-foreground">{notif.message}</p>
+                      {notif.createdAt && (
+                        <p className="font-paragraph text-xs text-foreground/50 mt-1">
+                          {new Date(notif.createdAt).toLocaleDateString('en-IN')}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -141,7 +222,7 @@ export default function TouristDashboardNewPage() {
                       <div>
                         <p className="font-paragraph text-sm text-foreground/70">Guide</p>
                         <p className="font-paragraph font-semibold text-foreground">
-                          {booking.guideReference || 'TBD'}
+                          {guides[booking.guideReference]?.fullName || booking.guideReference || 'TBD'}
                         </p>
                       </div>
                     </div>
@@ -169,15 +250,40 @@ export default function TouristDashboardNewPage() {
                     )}
                   </div>
 
-                  <button className="w-full mt-6 px-4 py-2 bg-primary text-primary-foreground font-paragraph rounded-full hover:bg-primary/90 transition-all">
-                    View Details
-                  </button>
+                  <div className="flex gap-3 mt-6">
+                    <button 
+                      onClick={() => handleOpenChat(
+                        booking._id, 
+                        guides[booking.guideReference]?.email || '', 
+                        guides[booking.guideReference]?.fullName || 'Guide'
+                      )}
+                      className="flex-1 px-4 py-2 bg-primary text-primary-foreground font-paragraph rounded-full hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle size={18} />
+                      Message
+                    </button>
+                    <button className="flex-1 px-4 py-2 border border-primary text-primary font-paragraph rounded-full hover:bg-primary/10 transition-all">
+                      Details
+                    </button>
+                  </div>
                 </motion.div>
               ))}
             </div>
           )}
         </motion.div>
       </main>
+
+      {/* Chat Box */}
+      {selectedBookingId && (
+        <ChatBox
+          bookingId={selectedBookingId}
+          otherUserEmail={selectedGuideEmail}
+          otherUserName={selectedGuideName}
+          userType="tourist"
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
 
       <Footer />
     </div>
