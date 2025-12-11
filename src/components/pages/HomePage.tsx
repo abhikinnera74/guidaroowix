@@ -9,6 +9,8 @@ import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
 import { ArrowRight, MapPin, Users, Star, Globe, Compass, Shield } from 'lucide-react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { Hero3DSection } from '@/components/3DHeroSection';
+import { DepthLayer } from '@/components/ParallaxDepth';
 
 // --- 1. UTILITIES & HELPERS ---
 
@@ -29,7 +31,7 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({ children, className, 
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         element.classList.add('is-visible');
-        observer.unobserve(element); // Stop observing after reveal
+        observer.unobserve(element);
       }
     }, { threshold });
 
@@ -38,14 +40,6 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({ children, className, 
   }, [threshold]);
 
   return <div ref={ref} className={`opacity-0 translate-y-8 transition-all duration-1000 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 [&.is-visible]:opacity-100 [&.is-visible]:translate-y-0 ${className || ''}`}>{children}</div>;
-};
-
-// Custom Hook for Parallax
-const useParallax = (distance: number = 50) => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref });
-  const y = useTransform(scrollYProgress, [0, 1], [-distance, distance]);
-  return { ref, y };
 };
 
 // --- 2. FEATURED GUIDES SECTION ---
@@ -179,12 +173,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
 // --- 4. MAIN COMPONENT ---
 
 export default function HomePage() {
-  // --- DATA FIDELITY PROTOCOL ---
-  // 1. Identify: useMember is the source of auth state.
-  // 2. Canonize: isAuthenticated is the canonical state.
   const { isAuthenticated } = useMember();
-  // 3. Preserve: Logic for buttons is preserved in the render.
-  // 4. Utilize: Used in Hero and CTA sections.
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -193,12 +182,10 @@ export default function HomePage() {
     restDelta: 0.001
   });
 
-  // State for guides and reviews
   const [guides, setGuides] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Fetch guides and reviews
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -230,114 +217,167 @@ export default function HomePage() {
       <TouristHeader />
 
       <main className="w-full">
-        {/* --- HERO SECTION --- */}
-        {/* Inspired by the "Countdown" image: Massive typography, clean layout, sticker motif */}
-        <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
+        {/* --- ENHANCED HERO SECTION WITH 3D --- */}
+        <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center pt-20 pb-20 px-6 overflow-hidden bg-gradient-to-b from-background via-background to-lavenderaccent/5">
           
-          {/* Background Elements */}
-          <div className="absolute inset-0 pointer-events-none opacity-30">
-             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-lavenderaccent/30 rounded-full blur-3xl mix-blend-multiply animate-pulse" style={{ animationDuration: '8s' }} />
-             <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-secondary/10 rounded-full blur-3xl mix-blend-multiply" />
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 pointer-events-none opacity-40">
+             <motion.div 
+               className="absolute top-1/4 left-1/4 w-96 h-96 bg-lavenderaccent/40 rounded-full blur-3xl mix-blend-multiply"
+               animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
+               transition={{ duration: 8, repeat: Infinity }}
+             />
+             <motion.div 
+               className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-secondary/15 rounded-full blur-3xl mix-blend-multiply"
+               animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.5, 0.3] }}
+               transition={{ duration: 10, repeat: Infinity }}
+             />
           </div>
 
-          <div className="relative z-10 text-center max-w-[100rem] mx-auto">
-            {/* Top Label */}
-            <AnimatedElement className="mb-6">
-              <span className="inline-block py-2 px-6 rounded-full border border-primary/20 bg-white/50 backdrop-blur-sm text-primary font-medium tracking-widest text-sm uppercase">
-                Curated Global Adventures
-              </span>
-            </AnimatedElement>
+          <div className="relative z-10 w-full max-w-[120rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="flex flex-col justify-center">
+              {/* Top Label */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="mb-6"
+              >
+                <span className="inline-block py-2 px-6 rounded-full border border-primary/20 bg-white/50 backdrop-blur-sm text-primary font-medium tracking-widest text-sm uppercase">
+                  Curated Global Adventures
+                </span>
+              </motion.div>
 
-            {/* Massive Typography */}
-            <div className="relative mb-12">
+              {/* Massive Typography */}
               <motion.h1 
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                className="font-heading text-[12vw] leading-[0.85] font-black text-primary tracking-tighter"
+                className="font-heading text-6xl md:text-7xl lg:text-8xl leading-[0.9] font-black text-primary tracking-tighter mb-8"
               >
                 DISCOVER
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-b from-primary to-primary/80">
+                <span className="text-transparent bg-clip-text bg-gradient-to-b from-primary to-secondary">
                   THE WORLD
                 </span>
               </motion.h1>
 
-              {/* "Sticker" Motif from Inspiration Image */}
-              <motion.div 
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 12 }}
-                transition={{ delay: 0.8, type: "spring", stiffness: 200, damping: 15 }}
-                className="absolute -bottom-8 right-[10%] md:right-[20%] w-32 h-32 md:w-48 md:h-48 bg-lavenderaccent rounded-full flex items-center justify-center shadow-xl z-20 hidden md:flex"
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="text-xl md:text-2xl text-foreground/80 font-light leading-relaxed mb-10 max-w-xl"
               >
-                <div className="text-center transform -rotate-12">
-                  <span className="block font-heading font-bold text-primary text-lg md:text-2xl leading-none">Start</span>
-                  <span className="block font-paragraph text-primary/80 text-sm md:text-base italic">Your Journey</span>
+                Connect with expert local guides and experience authentic adventures that go beyond the guidebook.
+              </motion.p>
+
+              {/* CTA Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="flex flex-wrap items-center gap-4 mb-10"
+              >
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/tours" className="group relative px-8 py-4 bg-primary text-primary-foreground rounded-full overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/25">
+                      <span className="relative z-10 flex items-center gap-2 font-semibold text-lg">
+                        Explore Tours <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                      </span>
+                      <div className="absolute inset-0 bg-secondary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out" />
+                    </Link>
+                    <Link to="/guide-dashboard" className="px-8 py-4 bg-transparent border-2 border-primary text-primary font-semibold text-lg rounded-full hover:bg-primary/5 transition-colors">
+                      Guide Dashboard
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/tours" className="group relative px-8 py-4 bg-primary text-primary-foreground rounded-full overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/25">
+                      <span className="relative z-10 flex items-center gap-2 font-semibold text-lg">
+                        Explore Tours <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                      </span>
+                      <div className="absolute inset-0 bg-secondary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out" />
+                    </Link>
+                    <Link to="/login" className="px-8 py-4 bg-transparent border-2 border-primary text-primary font-semibold text-lg rounded-full hover:bg-primary/5 transition-colors">
+                      Sign In
+                    </Link>
+                  </>
+                )}
+              </motion.div>
+
+              {/* Trust Badges */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="flex items-center gap-8 pt-8 border-t border-primary/10"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                    <Star size={20} className="text-secondary" />
+                  </div>
+                  <div>
+                    <p className="font-heading font-bold text-primary">4.9/5</p>
+                    <p className="text-sm text-foreground/70">Avg Rating</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Users size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-heading font-bold text-primary">10K+</p>
+                    <p className="text-sm text-foreground/70">Happy Travelers</p>
+                  </div>
                 </div>
               </motion.div>
             </div>
 
-            {/* Subtitle & CTA */}
-            <div className="flex flex-col items-center gap-10 max-w-2xl mx-auto">
-              <AnimatedElement className="delay-300">
-                <p className="text-xl md:text-2xl text-foreground/80 font-light leading-relaxed text-balance">
-                  Connect with expert local guides and experience authentic adventures that go beyond the guidebook.
+            {/* Right 3D Section */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="hidden lg:block"
+            >
+              <Hero3DSection isMobile={false} />
+            </motion.div>
+          </div>
+
+          {/* Mobile 3D Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="w-full lg:hidden mt-12"
+          >
+            <Hero3DSection isMobile={true} />
+          </motion.div>
+        </section>
+
+        {/* --- VISUAL BREATHER / HERO IMAGE WITH PARALLAX --- */}
+        <section className="w-full h-[80vh] px-4 md:px-8 pb-20 relative overflow-hidden">
+          <DepthLayer depth={2} className="w-full h-full">
+            <div className="w-full h-full rounded-[2rem] overflow-hidden relative shadow-2xl">
+              <div className="absolute inset-0 bg-black/20 z-10" />
+              <Image 
+                src="https://static.wixstatic.com/media/70fb72_ff5a8607e1dd416abad53c0788a5ab07~mv2.png?originWidth=1280&originHeight=704"
+                alt="Breathtaking landscape view"
+                className="w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-[2s] ease-out"
+                width={1920}
+              />
+              <div className="absolute bottom-12 left-12 z-20 text-white max-w-xl">
+                <p className="font-heading text-3xl md:text-5xl font-bold leading-tight">
+                  "The world is a book and those who do not travel read only one page."
                 </p>
-              </AnimatedElement>
-
-              <AnimatedElement className="delay-500">
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                  {isAuthenticated ? (
-                    <>
-                      <Link to="/tours" className="group relative px-8 py-4 bg-primary text-primary-foreground rounded-full overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/25">
-                        <span className="relative z-10 flex items-center gap-2 font-semibold text-lg">
-                          Explore Tours <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                        </span>
-                        <div className="absolute inset-0 bg-secondary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out" />
-                      </Link>
-                      <Link to="/guide-dashboard" className="px-8 py-4 bg-transparent border-2 border-primary text-primary font-semibold text-lg rounded-full hover:bg-primary/5 transition-colors">
-                        Guide Dashboard
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link to="/tours" className="group relative px-8 py-4 bg-primary text-primary-foreground rounded-full overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/25">
-                        <span className="relative z-10 flex items-center gap-2 font-semibold text-lg">
-                          Explore Tours <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                        </span>
-                        <div className="absolute inset-0 bg-secondary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out" />
-                      </Link>
-                      <Link to="/login" className="px-8 py-4 bg-transparent border-2 border-primary text-primary font-semibold text-lg rounded-full hover:bg-primary/5 transition-colors">
-                        Sign In
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </AnimatedElement>
+              </div>
             </div>
-          </div>
+          </DepthLayer>
         </section>
 
-        {/* --- VISUAL BREATHER / HERO IMAGE --- */}
-        <section className="w-full h-[80vh] px-4 md:px-8 pb-20">
-          <div className="w-full h-full rounded-[2rem] overflow-hidden relative shadow-2xl">
-            <div className="absolute inset-0 bg-black/20 z-10" />
-            <Image 
-              src="https://static.wixstatic.com/media/70fb72_ff5a8607e1dd416abad53c0788a5ab07~mv2.png?originWidth=1280&originHeight=704"
-              alt="Breathtaking landscape view"
-              className="w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-[2s] ease-out"
-              width={1920}
-            />
-            <div className="absolute bottom-12 left-12 z-20 text-white max-w-xl">
-              <p className="font-heading text-3xl md:text-5xl font-bold leading-tight">
-                "The world is a book and those who do not travel read only one page."
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* --- STICKY FEATURES SECTION --- */}
-        {/* A "Living" section where cards stack on top of each other */}
+        {/* --- STICKY FEATURES SECTION WITH DEPTH --- */}
         <section className="w-full py-24 px-6 bg-background relative">
           <div className="max-w-[120rem] mx-auto">
             <AnimatedElement className="mb-20 text-center">
@@ -347,61 +387,67 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Feature 1 */}
-              <div className="group relative bg-white rounded-[2.5rem] p-8 md:p-12 border border-primary/5 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-                <div className="w-20 h-20 bg-lavenderaccent/30 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                  <MapPin className="w-10 h-10 text-primary" />
+              <DepthLayer depth={0}>
+                <div className="group relative bg-white rounded-[2.5rem] p-8 md:p-12 border border-primary/5 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+                  <div className="w-20 h-20 bg-lavenderaccent/30 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                    <MapPin className="w-10 h-10 text-primary" />
+                  </div>
+                  <h3 className="font-heading text-3xl font-bold text-primary mb-4">Local Expertise</h3>
+                  <p className="text-lg text-foreground/70 leading-relaxed mb-8">
+                    Discover hidden gems and secret spots with guides who know every corner of their city intimately.
+                  </p>
+                  <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
+                    <Image 
+                      src="https://static.wixstatic.com/media/70fb72_4a1f8aa9b9bc4189a6ea139c23186422~mv2.png?originWidth=576&originHeight=448"
+                      alt="Local guide showing a map"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                      width={600}
+                    />
+                  </div>
                 </div>
-                <h3 className="font-heading text-3xl font-bold text-primary mb-4">Local Expertise</h3>
-                <p className="text-lg text-foreground/70 leading-relaxed mb-8">
-                  Discover hidden gems and secret spots with guides who know every corner of their city intimately.
-                </p>
-                <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
-                  <Image 
-                    src="https://static.wixstatic.com/media/70fb72_4a1f8aa9b9bc4189a6ea139c23186422~mv2.png?originWidth=576&originHeight=448"
-                    alt="Local guide showing a map"
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                    width={600}
-                  />
-                </div>
-              </div>
+              </DepthLayer>
 
               {/* Feature 2 */}
-              <div className="group relative bg-primary text-primary-foreground rounded-[2.5rem] p-8 md:p-12 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 lg:mt-12">
-                <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                  <Shield className="w-10 h-10 text-white" />
+              <DepthLayer depth={1}>
+                <div className="group relative bg-primary text-primary-foreground rounded-[2.5rem] p-8 md:p-12 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 lg:mt-12">
+                  <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                    <Shield className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="font-heading text-3xl font-bold text-white mb-4">Verified Guides</h3>
+                  <p className="text-lg text-white/80 leading-relaxed mb-8">
+                    Safety and quality are paramount. All our guides are carefully vetted professionals with proven track records.
+                  </p>
+                  <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
+                    <Image 
+                      src="https://static.wixstatic.com/media/70fb72_9bb2830dff714f429044cecd33159e5e~mv2.png?originWidth=576&originHeight=448"
+                      alt="Verified guide badge"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-90"
+                      width={600}
+                    />
+                  </div>
                 </div>
-                <h3 className="font-heading text-3xl font-bold text-white mb-4">Verified Guides</h3>
-                <p className="text-lg text-white/80 leading-relaxed mb-8">
-                  Safety and quality are paramount. All our guides are carefully vetted professionals with proven track records.
-                </p>
-                <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
-                  <Image 
-                    src="https://static.wixstatic.com/media/70fb72_9bb2830dff714f429044cecd33159e5e~mv2.png?originWidth=576&originHeight=448"
-                    alt="Verified guide badge"
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-90"
-                    width={600}
-                  />
-                </div>
-              </div>
+              </DepthLayer>
 
               {/* Feature 3 */}
-              <div className="group relative bg-white rounded-[2.5rem] p-8 md:p-12 border border-primary/5 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 lg:mt-24">
-                <div className="w-20 h-20 bg-secondary/20 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                  <Star className="w-10 h-10 text-secondary" />
+              <DepthLayer depth={2}>
+                <div className="group relative bg-white rounded-[2.5rem] p-8 md:p-12 border border-primary/5 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 lg:mt-24">
+                  <div className="w-20 h-20 bg-secondary/20 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                    <Star className="w-10 h-10 text-secondary" />
+                  </div>
+                  <h3 className="font-heading text-3xl font-bold text-primary mb-4">Unique Experiences</h3>
+                  <p className="text-lg text-foreground/70 leading-relaxed mb-8">
+                    From culinary walks to historical deep-dives, find the perfect experience tailored to your interests.
+                  </p>
+                  <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
+                    <Image 
+                      src="https://static.wixstatic.com/media/70fb72_e9f6f5c902f749a9ac39dba6e66a9bed~mv2.png?originWidth=576&originHeight=448"
+                      alt="Unique cultural experience"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                      width={600}
+                    />
+                  </div>
                 </div>
-                <h3 className="font-heading text-3xl font-bold text-primary mb-4">Unique Experiences</h3>
-                <p className="text-lg text-foreground/70 leading-relaxed mb-8">
-                  From culinary walks to historical deep-dives, find the perfect experience tailored to your interests.
-                </p>
-                <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
-                  <Image 
-                    src="https://static.wixstatic.com/media/70fb72_e9f6f5c902f749a9ac39dba6e66a9bed~mv2.png?originWidth=576&originHeight=448"
-                    alt="Unique cultural experience"
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                    width={600}
-                  />
-                </div>
-              </div>
+              </DepthLayer>
             </div>
           </div>
         </section>
@@ -417,7 +463,7 @@ export default function HomePage() {
             <div className="space-y-32">
               {/* Step 1 */}
               <div className="flex flex-col lg:flex-row items-center gap-16">
-                <div className="w-full lg:w-1/2">
+                <DepthLayer depth={1} className="w-full lg:w-1/2">
                   <AnimatedElement>
                     <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
                       <Image 
@@ -429,8 +475,8 @@ export default function HomePage() {
                       <div className="absolute top-6 left-6 w-16 h-16 bg-white rounded-full flex items-center justify-center font-heading font-bold text-2xl text-primary shadow-lg">01</div>
                     </div>
                   </AnimatedElement>
-                </div>
-                <div className="w-full lg:w-1/2 lg:pl-12">
+                </DepthLayer>
+                <DepthLayer depth={0} className="w-full lg:w-1/2 lg:pl-12">
                   <AnimatedElement threshold={0.5}>
                     <h4 className="font-heading text-3xl md:text-4xl font-bold text-primary mb-6">Browse Curated Tours</h4>
                     <p className="text-xl text-foreground/80 leading-relaxed mb-8">
@@ -441,12 +487,12 @@ export default function HomePage() {
                       <span>Global Destinations</span>
                     </div>
                   </AnimatedElement>
-                </div>
+                </DepthLayer>
               </div>
 
               {/* Step 2 */}
               <div className="flex flex-col-reverse lg:flex-row items-center gap-16">
-                <div className="w-full lg:w-1/2 lg:pr-12 lg:text-right">
+                <DepthLayer depth={0} className="w-full lg:w-1/2 lg:pr-12 lg:text-right">
                   <AnimatedElement threshold={0.5}>
                     <h4 className="font-heading text-3xl md:text-4xl font-bold text-primary mb-6">Choose Your Guide</h4>
                     <p className="text-xl text-foreground/80 leading-relaxed mb-8">
@@ -457,8 +503,8 @@ export default function HomePage() {
                       <Users className="w-6 h-6" />
                     </div>
                   </AnimatedElement>
-                </div>
-                <div className="w-full lg:w-1/2">
+                </DepthLayer>
+                <DepthLayer depth={1} className="w-full lg:w-1/2">
                   <AnimatedElement>
                     <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl -rotate-2 hover:rotate-0 transition-transform duration-700">
                       <Image 
@@ -470,12 +516,12 @@ export default function HomePage() {
                       <div className="absolute top-6 right-6 w-16 h-16 bg-white rounded-full flex items-center justify-center font-heading font-bold text-2xl text-primary shadow-lg">02</div>
                     </div>
                   </AnimatedElement>
-                </div>
+                </DepthLayer>
               </div>
 
               {/* Step 3 */}
               <div className="flex flex-col lg:flex-row items-center gap-16">
-                <div className="w-full lg:w-1/2">
+                <DepthLayer depth={1} className="w-full lg:w-1/2">
                   <AnimatedElement>
                     <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
                       <Image 
@@ -487,8 +533,8 @@ export default function HomePage() {
                       <div className="absolute top-6 left-6 w-16 h-16 bg-white rounded-full flex items-center justify-center font-heading font-bold text-2xl text-primary shadow-lg">03</div>
                     </div>
                   </AnimatedElement>
-                </div>
-                <div className="w-full lg:w-1/2 lg:pl-12">
+                </DepthLayer>
+                <DepthLayer depth={0} className="w-full lg:w-1/2 lg:pl-12">
                   <AnimatedElement threshold={0.5}>
                     <h4 className="font-heading text-3xl md:text-4xl font-bold text-primary mb-6">Book & Explore</h4>
                     <p className="text-xl text-foreground/80 leading-relaxed mb-8">
@@ -499,7 +545,7 @@ export default function HomePage() {
                       <span>Seamless Experience</span>
                     </div>
                   </AnimatedElement>
-                </div>
+                </DepthLayer>
               </div>
             </div>
           </div>
