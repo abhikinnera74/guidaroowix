@@ -17,13 +17,13 @@ export function TouristHeader() {
     <header className="bg-background border-b border-primary/10 sticky top-0 z-50">
       <div className="max-w-[120rem] mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          {/* Logo - Left */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <span className="font-heading text-2xl font-bold text-primary">Guidaroo</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Desktop Navigation - Right */}
+          <nav className="hidden md:flex items-center gap-8 ml-auto">
             <Link 
               to="/tours" 
               className={`font-paragraph text-base transition-colors ${

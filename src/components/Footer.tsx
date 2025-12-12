@@ -1,63 +1,118 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export default function Footer() {
+  const footerLinks = [
+    { label: 'About', href: '#' },
+    { label: 'Contact', href: '#' },
+    { label: 'Terms', href: '#' },
+    { label: 'Privacy', href: '#' },
+  ];
+
+  const quickLinks = [
+    { label: 'Explore Tours', href: '/tours' },
+    { label: 'Find a Guide', href: '/find-guide' },
+    { label: 'Tourist Login', href: '/login' },
+    { label: 'Guide Login', href: '/guide-login' },
+  ];
+
   return (
     <footer className="bg-primary text-primary-foreground">
-      <div className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-          {/* Brand */}
-          <div>
+      <div className="max-w-[120rem] mx-auto px-6 lg:px-12 py-20">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          {/* Brand Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
             <h3 className="font-heading text-2xl font-bold mb-4">Guidaroo</h3>
-            <p className="font-paragraph text-base opacity-90">
-              Connecting travelers with expert local guides for unforgettable experiences.
+            <p className="font-paragraph text-base opacity-90 leading-relaxed">
+              Connecting travelers with expert local guides for unforgettable experiences around the world.
             </p>
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div>
-            <h4 className="font-heading text-lg font-semibold mb-4">Quick Links</h4>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+          >
+            <h4 className="font-heading text-lg font-semibold mb-6">Explore</h4>
             <ul className="space-y-3">
-              <li>
-                <Link to="/tours" className="font-paragraph text-base opacity-90 hover:opacity-100 transition-opacity">
-                  Explore Tours
-                </Link>
-              </li>
-              <li>
-                <Link to="/find-guide" className="font-paragraph text-base opacity-90 hover:opacity-100 transition-opacity">
-                  Find a Guide
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" className="font-paragraph text-base opacity-90 hover:opacity-100 transition-opacity">
-                  Tourist Login
-                </Link>
-              </li>
-              <li>
-                <Link to="/guide-login" className="font-paragraph text-base opacity-90 hover:opacity-100 transition-opacity">
-                  Guide Login
-                </Link>
-              </li>
+              {quickLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    to={link.href}
+                    className="font-paragraph text-base opacity-80 hover:opacity-100 transition-opacity duration-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </motion.div>
 
-          {/* Contact */}
-          <div>
-            <h4 className="font-heading text-lg font-semibold mb-4">Get in Touch</h4>
-            <p className="font-paragraph text-base opacity-90 mb-2">
+          {/* Information Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <h4 className="font-heading text-lg font-semibold mb-6">Information</h4>
+            <ul className="space-y-3">
+              {footerLinks.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    className="font-paragraph text-base opacity-80 hover:opacity-100 transition-opacity duration-300"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Contact Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            viewport={{ once: true }}
+          >
+            <h4 className="font-heading text-lg font-semibold mb-6">Get in Touch</h4>
+            <p className="font-paragraph text-base opacity-90 mb-4">
               Have questions? We're here to help.
             </p>
-            <p className="font-paragraph text-base opacity-90">
+            <a
+              href="mailto:support@guidaroo.com"
+              className="font-paragraph text-base opacity-80 hover:opacity-100 transition-opacity duration-300 break-all"
+            >
               support@guidaroo.com
-            </p>
-          </div>
+            </a>
+          </motion.div>
         </div>
 
-        {/* Copyright */}
-        <div className="pt-8 border-t border-primary-foreground/20">
-          <p className="font-paragraph text-sm text-center opacity-80">
-            © {new Date().getFullYear()} Guidaroo. All rights reserved.
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent mb-8" />
+
+        {/* Copyright & Bottom Info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="text-center"
+        >
+          <p className="font-paragraph text-sm opacity-70">
+            © {new Date().getFullYear()} Guidaroo. All rights reserved. | Connecting the world through authentic local experiences.
           </p>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );
