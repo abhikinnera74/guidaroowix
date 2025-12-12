@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
 import { Guides } from '@/entities';
-import { GuideHeader } from '@/components/Header';
+import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -125,7 +125,7 @@ export default function GuideOnboardingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <GuideHeader />
+      <GuidePremiumHeader />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         {/* Page Header */}

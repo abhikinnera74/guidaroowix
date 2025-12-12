@@ -1,7 +1,7 @@
 import { useMember } from '@/integrations';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { GuideHeader } from '@/components/Header';
+import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { Compass } from 'lucide-react';
 
@@ -17,7 +17,7 @@ export default function GuideLoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <GuideHeader />
+      <GuidePremiumHeader />
       
       <main className="flex-1 flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-md">

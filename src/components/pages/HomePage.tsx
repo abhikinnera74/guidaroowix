@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
 import { Guides, GuideReviews } from '@/entities';
-import { TouristHeader } from '@/components/Header';
+import { TouristPremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
 import { ArrowRight, MapPin, Users, Star, Globe, Compass, Shield } from 'lucide-react';
@@ -230,7 +230,7 @@ export default function HomePage() {
         style={{ scaleX }}
       />
 
-      <TouristHeader />
+      <TouristPremiumHeader />
 
       <main className="w-full">
         {/* --- PREMIUM 3D HERO SECTION --- */}

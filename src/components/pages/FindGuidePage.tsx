@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { Guides } from '@/entities';
-import { TouristHeader } from '@/components/Header';
+import { TouristPremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { Image } from '@/components/ui/image';
 import { Star, MapPin, Globe, Zap, Search, Filter, BookOpen } from 'lucide-react';
@@ -107,7 +107,7 @@ export default function FindGuidePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <TouristHeader />
+        <TouristPremiumHeader />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -121,7 +121,7 @@ export default function FindGuidePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TouristHeader />
+      <TouristPremiumHeader />
 
       <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         {/* Page Header */}
