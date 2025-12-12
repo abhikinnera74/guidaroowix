@@ -14,8 +14,9 @@ body {
   padding-top: 0;
 }
 
+/* Add padding to main content to account for fixed header */
 main {
-  padding-top: 6rem;
+  padding-top: 8rem;
 }
 
 /* Premium header animations */
@@ -66,5 +67,36 @@ main {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
+}
+
+/* Header auto-hide animation support */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.header-slide-in {
+  animation: slideDown 0.3s ease-in-out forwards;
+}
+
+.header-slide-out {
+  animation: slideUp 0.3s ease-in-out forwards;
 }
 

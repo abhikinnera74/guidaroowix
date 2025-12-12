@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { Menu, X, Compass, MapPin, LogIn, Users } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 interface NavItemProps {
@@ -90,11 +90,16 @@ export function TouristPremiumHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const [mouseNearTop, setMouseNearTop] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
+  const lastScrollYRef = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Track mouse position for particle field
+  // Track mouse position for particle field and top hover detection
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!headerRef.current) return;
@@ -103,20 +108,57 @@ export function TouristPremiumHeader() {
         x: (e.clientX - rect.left) / rect.width,
         y: (e.clientY - rect.top) / rect.height,
       });
+
+      // Check if mouse is near the top 20px
+      if (e.clientY < 20) {
+        setMouseNearTop(true);
+        setIsHeaderVisible(true);
+      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Track scroll for parallax effect
+  // Track scroll for parallax effect and auto-hide behavior
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+      setIsAtTop(currentScrollY < 50);
+
+      // Debounced scroll direction detection
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      scrollTimeoutRef.current = setTimeout(() => {
+        const scrollDelta = currentScrollY - lastScrollYRef.current;
+        
+        // Scrolling down - hide header
+        if (scrollDelta > 0 && currentScrollY > 100) {
+          setIsHeaderVisible(false);
+        }
+        // Scrolling up - show header
+        else if (scrollDelta < 0) {
+          setIsHeaderVisible(true);
+        }
+        // At top - always show
+        else if (currentScrollY < 50) {
+          setIsHeaderVisible(true);
+        }
+
+        lastScrollYRef.current = currentScrollY;
+      }, 150); // 150ms debounce
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, []);
 
   const navItems = [
@@ -190,8 +232,18 @@ export function TouristPremiumHeader() {
         </svg>
       </div>
 
-      {/* Glass-morphism container */}
-      <div className="relative mx-4 md:mx-6 lg:mx-12 my-4">
+      {/* Glass-morphism container with auto-hide animation */}
+      <motion.div
+        className="relative mx-4 md:mx-6 lg:mx-12 my-4"
+        animate={{
+          y: isHeaderVisible ? 0 : -120,
+          opacity: isHeaderVisible ? 1 : 0,
+        }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut',
+        }}
+      >
         <div
           className="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl"
           style={{
@@ -322,7 +374,7 @@ export function TouristPremiumHeader() {
             </nav>
           )}
         </motion.div>
-      </div>
+      </motion.div>
     </motion.header>
   );
 }
@@ -334,7 +386,12 @@ export function GuidePremiumHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const [mouseNearTop, setMouseNearTop] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
+  const lastScrollYRef = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -346,6 +403,12 @@ export function GuidePremiumHeader() {
         x: (e.clientX - rect.left) / rect.width,
         y: (e.clientY - rect.top) / rect.height,
       });
+
+      // Check if mouse is near the top 20px
+      if (e.clientY < 20) {
+        setMouseNearTop(true);
+        setIsHeaderVisible(true);
+      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -354,11 +417,42 @@ export function GuidePremiumHeader() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+      setIsAtTop(currentScrollY < 50);
+
+      // Debounced scroll direction detection
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      scrollTimeoutRef.current = setTimeout(() => {
+        const scrollDelta = currentScrollY - lastScrollYRef.current;
+        
+        // Scrolling down - hide header
+        if (scrollDelta > 0 && currentScrollY > 100) {
+          setIsHeaderVisible(false);
+        }
+        // Scrolling up - show header
+        else if (scrollDelta < 0) {
+          setIsHeaderVisible(true);
+        }
+        // At top - always show
+        else if (currentScrollY < 50) {
+          setIsHeaderVisible(true);
+        }
+
+        lastScrollYRef.current = currentScrollY;
+      }, 150); // 150ms debounce
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, []);
 
   const navItems = [
@@ -425,8 +519,18 @@ export function GuidePremiumHeader() {
         </svg>
       </div>
 
-      {/* Glass-morphism container */}
-      <div className="relative mx-4 md:mx-6 lg:mx-12 my-4">
+      {/* Glass-morphism container with auto-hide animation */}
+      <motion.div
+        className="relative mx-4 md:mx-6 lg:mx-12 my-4"
+        animate={{
+          y: isHeaderVisible ? 0 : -120,
+          opacity: isHeaderVisible ? 1 : 0,
+        }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut',
+        }}
+      >
         <div
           className="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl"
           style={{
@@ -552,7 +656,7 @@ export function GuidePremiumHeader() {
             </nav>
           )}
         </motion.div>
-      </div>
+      </motion.div>
     </motion.header>
   );
 }
