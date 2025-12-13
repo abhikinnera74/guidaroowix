@@ -202,6 +202,88 @@ npm install --legacy-peer-deps
 npm install --force
 ```
 
+### Issue 7: Google Maps Not Loading
+
+**Symptoms:**
+- Map is blank or shows gray area
+- Console shows "Google Maps API error"
+- Location picker doesn't work
+
+**Solution:**
+
+1. **Check API Key Configuration**
+   ```bash
+   # Make sure .env file exists in project root
+   cat .env
+   # Should show: VITE_GOOGLE_MAPS_API_KEY=your_key_here
+   ```
+
+2. **Verify API Key is Valid**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Check that your API key is active (not disabled)
+   - Verify the key has these APIs enabled:
+     - Maps JavaScript API
+     - Places API
+     - Geocoding API
+
+3. **Check API Restrictions**
+   - In Google Cloud Console, click on your API key
+   - Under "Application restrictions", select "Web"
+   - Add your domain to "Allowed referrers"
+   - For localhost development, add: `http://localhost:5173/*`
+
+4. **Restart Development Server**
+   ```bash
+   # Stop the server (Ctrl+C)
+   # Then restart it
+   npm run dev
+   ```
+
+5. **Clear Browser Cache**
+   - Hard refresh: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
+   - Or clear cache: `Ctrl+Shift+Delete`
+
+6. **Check Browser Console for Errors**
+   - Open DevTools: `F12`
+   - Go to Console tab
+   - Look for error messages starting with "Google Maps"
+   - Common errors:
+     - `"Google Maps API error: MissingKeyMapError"` → API key is missing or invalid
+     - `"Google Maps API error: RefererNotAllowedMapError"` → Domain not allowed
+     - `"Google Maps API error: InvalidKeyMapError"` → API key is invalid
+
+7. **Verify Environment Variable is Loaded**
+   - In your browser console, type:
+     ```javascript
+     console.log(import.meta.env.VITE_GOOGLE_MAPS_API_KEY)
+     ```
+   - Should show your API key (not `undefined`)
+   - If it shows `undefined`, restart the dev server
+
+8. **Check Network Requests**
+   - Open DevTools: `F12`
+   - Go to Network tab
+   - Look for requests to `maps.googleapis.com`
+   - Check if they return 200 (success) or 403 (forbidden)
+   - 403 usually means API key issue or domain restriction
+
+9. **Test with a Simple Map**
+   - If maps aren't loading anywhere, try the location picker page
+   - If it works there but not elsewhere, the issue is component-specific
+
+10. **Last Resort: Regenerate API Key**
+    - If nothing works, create a new API key in Google Cloud Console
+    - Delete the old one
+    - Update `.env` with the new key
+    - Restart dev server
+
+**Still Having Issues?**
+- Check that you're using the correct environment variable name: `VITE_GOOGLE_MAPS_API_KEY`
+- Make sure `.env` file is in the project root (same level as `package.json`)
+- Verify no typos in your API key
+- Try accessing the app from a different browser
+- Check your Google Cloud Console billing is active (even free tier needs billing enabled)
+
 ---
 
 ## Project Structure
@@ -382,7 +464,65 @@ npm run lint
 
 ## Environment Variables
 
-The project uses Wix integration for authentication and database. No additional environment variables are needed for local development.
+### Google Maps API Configuration
+
+The project uses Google Maps for location-based features. You need to set up a Google Maps API key.
+
+#### Step 1: Get Your Free Google Maps API Key
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable these APIs:
+   - **Maps JavaScript API** - For displaying maps
+   - **Places API** - For location search and autocomplete
+   - **Geocoding API** - For converting addresses to coordinates
+4. Create an API key:
+   - Click "Create Credentials" → "API Key"
+   - Choose "Restrict Key" → "Web"
+   - Add your domain to "Allowed referrers"
+5. Copy your API key
+
+#### Step 2: Configure Your Local Environment
+
+1. Copy the `.env.example` file to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Open `.env` and add your API key:
+   ```
+   VITE_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+   ```
+
+3. Replace `your_actual_api_key_here` with your actual API key from Google Cloud Console
+
+#### Step 3: Restart Development Server
+
+```bash
+npm run dev
+```
+
+The development server will automatically pick up the new environment variable.
+
+#### ⚠️ Important Security Notes
+
+- **NEVER commit `.env` to version control** - It contains sensitive credentials
+- `.env` is already in `.gitignore` - Make sure not to remove it
+- Use `.env.example` as a template for other developers
+- For production, set environment variables through your hosting platform's dashboard
+
+#### Free Tier Limits
+
+Google Maps API free tier includes:
+- **Maps JavaScript API**: 25,000 map loads/day
+- **Places API**: 25,000 requests/day
+- **Geocoding API**: 25,000 requests/day
+
+Perfect for development and testing!
+
+### Other Environment Variables
+
+The project uses Wix integration for authentication and database. No additional environment variables are needed for local development beyond the Google Maps API key.
 
 For production deployment, contact your Wix administrator for configuration details.
 
