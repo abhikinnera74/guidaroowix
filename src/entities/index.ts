@@ -11,8 +11,14 @@ export interface Bookings {
   _id: string;
   _createdDate?: Date;
   _updatedDate?: Date;
+  /** @wixFieldType number */
+  pickupLongitude?: number;
+  /** @wixFieldType text */
+  pickupAddress?: string;
   /** @wixFieldType text */
   paymentMethod?: string;
+  /** @wixFieldType number */
+  pickupLatitude?: number;
   /** @wixFieldType date */
   bookingDate?: Date | string;
   /** @wixFieldType time */
@@ -27,12 +33,6 @@ export interface Bookings {
   touristReference?: string;
   /** @wixFieldType text */
   bookingStatus?: string;
-  /** @wixFieldType number */
-  pickupLatitude?: number;
-  /** @wixFieldType number */
-  pickupLongitude?: number;
-  /** @wixFieldType text */
-  pickupAddress?: string;
 }
 
 
