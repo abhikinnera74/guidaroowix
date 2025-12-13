@@ -1,7 +1,7 @@
 # Interactive Map Location Integration Guide
 
 ## Overview
-This document outlines the complete implementation of interactive map location selection for the guide booking system.
+This document outlines the complete implementation of interactive map location selection using **OpenStreetMap and Leaflet** - completely free, no API keys required!
 
 ## Features Implemented
 
@@ -9,15 +9,16 @@ This document outlines the complete implementation of interactive map location s
 A reusable, production-ready component that provides:
 
 #### Features:
-- **Interactive Google Maps**: Click on map to select location
-- **Search Functionality**: Search for locations with autocomplete (restricted to India)
+- **Interactive OpenStreetMap**: Click on map to select location
+- **Search Functionality**: Search for locations with autocomplete (using Nominatim)
 - **Auto-Detect Location**: One-click current location detection with geolocation API
-- **Geocoding**: Automatic address retrieval from coordinates
+- **Reverse Geocoding**: Automatic address retrieval from coordinates
 - **Error Handling**: User-friendly error messages
 - **Loading States**: Visual feedback during operations
 - **Location Display**: Shows selected address and coordinates
 - **Responsive Design**: Desktop-first, clean UI with Tailwind CSS
 - **Animations**: Smooth transitions using Framer Motion
+- **Zero Configuration**: No API keys needed!
 
 #### Props:
 ```typescript
@@ -107,8 +108,8 @@ await BaseCrudService.create('bookings', {
 #### Features for Guides:
 1. **Location Display**: Shows pickup address in booking card
 2. **Coordinates**: Displays latitude/longitude for reference
-3. **Map Preview**: Embedded Google Maps preview of the location
-4. **Navigate Button**: "Get Directions" button that opens Google Maps with turn-by-turn directions
+3. **Map Preview**: Interactive OpenStreetMap preview of the location
+4. **Navigate Button**: "Get Directions" button that opens OpenStreetMap with directions
 
 #### Implementation:
 ```tsx
@@ -132,22 +133,18 @@ await BaseCrudService.create('bookings', {
 
     {/* Map Preview */}
     {booking.pickupLatitude && booking.pickupLongitude && (
-      <div className="mt-3 rounded-lg overflow-hidden border border-secondary/20 h-48">
-        <iframe
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${booking.pickupLatitude},${booking.pickupLongitude}`}
-          allowFullScreen={true}
-          loading="lazy"
-        />
-      </div>
+      <MapPreview
+        lat={booking.pickupLatitude}
+        lng={booking.pickupLongitude}
+        bookingId={booking._id}
+        mapRefsRef={mapRefsRef}
+      />
     )}
 
     {/* Navigate Button */}
     {booking.pickupLatitude && booking.pickupLongitude && (
       <a
-        href={`https://www.google.com/maps/dir/?api=1&destination=${booking.pickupLatitude},${booking.pickupLongitude}`}
+        href={`https://www.openstreetmap.org/directions?engine=osrm_car&route=${booking.pickupLatitude},${booking.pickupLongitude}`}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
@@ -162,26 +159,22 @@ await BaseCrudService.create('bookings', {
 
 ## Setup Instructions
 
-### 1. Environment Variables
-Add to your `.env` file:
-```
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+### 1. Installation
+Just install dependencies - no configuration needed!
+```bash
+npm install
+npm run dev
 ```
 
-### 2. Google Maps API Setup
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable these APIs:
-   - Maps JavaScript API
-   - Places API
-   - Geocoding API
-4. Create an API key (Restricted to Web)
-5. Add your domain to the allowed referrers
+### 2. What Gets Installed
+- **Leaflet**: Lightweight mapping library
+- **OpenStreetMap Tiles**: Free map tiles
+- **Nominatim**: Free geocoding service
 
 ### 3. Permissions
 The component requests:
 - **Geolocation**: For "Use Current Location" feature
-- **Maps API**: For map rendering and geocoding
+- **Network Access**: To fetch map tiles and geocoding data
 
 ## User Flow
 
@@ -198,16 +191,16 @@ The component requests:
 ### For Guides (Bookings Dashboard):
 1. View incoming bookings
 2. See pickup location address and coordinates
-3. View embedded map preview
-4. Click "Get Directions" to open Google Maps with turn-by-turn navigation
+3. View interactive map preview
+4. Click "Get Directions" to open OpenStreetMap with navigation
 
 ## Technical Details
 
 ### Component Architecture
 - **LocationPicker**: Standalone, reusable component
-- **Google Maps Integration**: Uses Google Maps JavaScript API v3
-- **Geocoding**: Converts coordinates to addresses and vice versa
-- **Autocomplete**: Places API for location search
+- **Leaflet Integration**: Uses Leaflet JavaScript library
+- **Nominatim Geocoding**: Converts coordinates to addresses and vice versa
+- **OpenStreetMap Tiles**: Free map tiles from OSM community
 
 ### Data Flow
 ```
@@ -215,7 +208,7 @@ Tourist Input (Map/Search)
     ↓
 LocationPicker Component
     ↓
-Geocoding (Address retrieval)
+Reverse Geocoding (Address retrieval via Nominatim)
     ↓
 BookingPage State
     ↓
@@ -228,9 +221,9 @@ Map Preview + Navigation
 
 ### Error Handling
 - Geolocation permission denied
-- API failures
-- Invalid coordinates
 - Network errors
+- Invalid coordinates
+- Nominatim service unavailable
 
 All errors display user-friendly messages.
 
@@ -241,16 +234,39 @@ All errors display user-friendly messages.
 - Mobile browsers: Full support (with geolocation)
 
 ## Performance Considerations
-- Maps API loaded asynchronously
+- Leaflet loads asynchronously
 - Lazy loading for map previews
-- Debounced search input
+- Debounced search input (300ms)
 - Optimized marker updates
+- Lightweight library (Leaflet is ~40KB)
 
 ## Security Notes
-- API key restricted to web domain
+- No API keys stored in code
 - No sensitive data stored in frontend
 - All location data encrypted in transit
 - User location only collected with explicit permission
+- Uses HTTPS-safe Nominatim service
+
+## Why OpenStreetMap + Leaflet?
+
+### Advantages:
+✅ **Completely Free** - No API keys, no billing, no rate limits  
+✅ **Open Source** - Transparent, community-driven  
+✅ **Lightweight** - Leaflet is only ~40KB  
+✅ **Privacy-Friendly** - No tracking, no data collection  
+✅ **Offline Capable** - Can work with cached tiles  
+✅ **Customizable** - Full control over map styling  
+✅ **Production Ready** - Used by major companies  
+
+### Compared to Google Maps:
+| Feature | OpenStreetMap | Google Maps |
+|---------|---------------|------------|
+| Cost | Free | $7+ per 1000 requests |
+| API Key | Not needed | Required |
+| Rate Limits | Generous | Depends on plan |
+| Privacy | Better | Tracks users |
+| Customization | Full | Limited |
+| Offline | Possible | No |
 
 ## Future Enhancements
 1. Multiple location selection (start/end points)
@@ -265,19 +281,22 @@ All errors display user-friendly messages.
 ## Troubleshooting
 
 ### Map not loading
-- Check API key is valid
-- Verify domain is whitelisted
 - Check browser console for errors
+- Verify internet connection (tiles require network)
+- Try hard refresh: `Ctrl+Shift+R`
+- Clear browser cache
 
 ### Geolocation not working
-- Ensure HTTPS is used
+- Ensure HTTPS is used (or localhost)
 - Check browser permissions
 - Verify geolocation API is enabled
+- Try a different browser
 
 ### Search not working
-- Verify Places API is enabled
-- Check API key has correct permissions
-- Ensure location restriction is set to India
+- Check internet connection
+- Verify Nominatim service is accessible
+- Try searching with different terms
+- Check browser console for errors
 
 ### Coordinates not accurate
 - Zoom in on map for better precision
@@ -289,6 +308,8 @@ All errors display user-friendly messages.
 2. `/src/components/LocationPicker.tsx` - New component (created)
 3. `/src/components/pages/BookingPage.tsx` - Integrated LocationPicker
 4. `/src/components/pages/GuideBookingsPage.tsx` - Added location display and map preview
+5. `/src/SETUP_GUIDE.md` - Updated documentation
+6. `/src/.env.example` - Removed Google Maps API key requirement
 
 ## Testing Checklist
 - [ ] Location picker loads correctly
@@ -300,7 +321,9 @@ All errors display user-friendly messages.
 - [ ] Booking saves location data
 - [ ] Guide dashboard displays location
 - [ ] Map preview renders correctly
-- [ ] Navigation button opens Google Maps
+- [ ] Navigation button opens OpenStreetMap
 - [ ] Responsive on mobile devices
 - [ ] Error messages display correctly
 - [ ] Loading states work properly
+- [ ] No API key errors in console
+

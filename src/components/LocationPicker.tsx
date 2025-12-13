@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Search, Loader, AlertCircle } from 'lucide-react';
+import { MapPin, Search, Loader, AlertCircle, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface LocationData {
@@ -14,91 +14,29 @@ interface LocationPickerProps {
   required?: boolean;
 }
 
-declare global {
-  interface Window {
-    google: any;
-  }
-}
-
-export default function LocationPicker({ 
-  onLocationSelect, 
-  selectedLocation, 
-  required = true 
+export default function LocationPicker({
+  onLocationSelect,
+  selectedLocation,
+  required = true,
 }: LocationPickerProps) {
   const [searchInput, setSearchInput] = useState('');
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [isLoadingMap, setIsLoadingMap] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-  const autocompleteServiceRef = useRef<any>(null);
-  const geocoderRef = useRef<any>(null);
+  const suggestionsTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load Google Maps API
-  useEffect(() => {
-    const loadGoogleMaps = () => {
-      if (window.google && window.google.maps) {
-        initializeMap();
-      } else {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
-        script.async = true;
-        script.onload = initializeMap;
-        document.head.appendChild(script);
-      }
-    };
-
-    loadGoogleMaps();
-  }, []);
-
-  const initializeMap = () => {
-    if (!mapRef.current || !window.google) return;
-
-    const defaultLocation = selectedLocation 
-      ? { lat: selectedLocation.latitude, lng: selectedLocation.longitude }
-      : { lat: 20.5937, lng: 78.9629 }; // Center of India
-
-    mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-      zoom: 13,
-      center: defaultLocation,
-      mapTypeControl: true,
-      fullscreenControl: true,
-      streetViewControl: false,
-    });
-
-    geocoderRef.current = new window.google.maps.Geocoder();
-    autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-
-    // Add marker if location is already selected
-    if (selectedLocation) {
-      addMarker(selectedLocation.latitude, selectedLocation.longitude);
+  // Reverse geocode using Nominatim (OpenStreetMap's geocoding service)
+  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await response.json();
+      return data.address?.road || data.address?.village || data.address?.city || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch (err) {
+      console.error('Reverse geocoding error:', err);
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     }
-
-    // Handle map clicks
-    mapInstanceRef.current.addListener('click', (e: any) => {
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
-      handleLocationSelect(lat, lng);
-    });
-
-    setIsLoadingMap(false);
-  };
-
-  const addMarker = (lat: number, lng: number) => {
-    if (markerRef.current) {
-      markerRef.current.setMap(null);
-    }
-
-    markerRef.current = new window.google.maps.Marker({
-      position: { lat, lng },
-      map: mapInstanceRef.current,
-      title: 'Pickup Location',
-      animation: window.google.maps.Animation.DROP,
-    });
-
-    mapInstanceRef.current.panTo({ lat, lng });
   };
 
   const handleLocationSelect = async (lat: number, lng: number) => {
@@ -106,70 +44,52 @@ export default function LocationPicker({
     setError(null);
 
     try {
-      const response = await geocoderRef.current.geocode({ location: { lat, lng } });
-      
-      if (response.results && response.results.length > 0) {
-        const address = response.results[0].formatted_address;
-        addMarker(lat, lng);
-        setSearchInput(address);
-        onLocationSelect({ latitude: lat, longitude: lng, address });
-      } else {
-        setError('Could not find address for this location');
-      }
+      const address = await reverseGeocode(lat, lng);
+      setSearchInput(address);
+      onLocationSelect({ latitude: lat, longitude: lng, address });
     } catch (err) {
       setError('Error retrieving location details');
-      console.error('Geocoding error:', err);
+      console.error('Location selection error:', err);
     } finally {
       setIsLoadingLocation(false);
     }
   };
 
+  // Search locations using Nominatim
   const handleSearchChange = async (value: string) => {
     setSearchInput(value);
     setSuggestions([]);
 
     if (!value || value.length < 3) return;
 
-    try {
-      const predictions = await autocompleteServiceRef.current.getPlacePredictions({
-        input: value,
-        componentRestrictions: { country: 'in' }, // Restrict to India
-      });
-
-      setSuggestions(predictions.predictions || []);
-    } catch (err) {
-      console.error('Autocomplete error:', err);
+    // Clear previous timeout
+    if (suggestionsTimeoutRef.current) {
+      clearTimeout(suggestionsTimeoutRef.current);
     }
+
+    // Debounce search
+    suggestionsTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&countrycodes=in&limit=5`
+        );
+        const data = await response.json();
+        setSuggestions(data || []);
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    }, 300);
   };
 
-  const handleSuggestionClick = async (placeId: string, description: string) => {
-    setSearchInput(description);
-    setSuggestions([]);
-    setIsLoadingLocation(true);
-    setError(null);
+  const handleSuggestionClick = async (suggestion: any) => {
+    const lat = parseFloat(suggestion.lat);
+    const lng = parseFloat(suggestion.lon);
+    const address = suggestion.display_name;
 
-    try {
-      const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
-      
-      service.getDetails(
-        { placeId, fields: ['geometry', 'formatted_address'] },
-        (place: any) => {
-          if (place && place.geometry && place.geometry.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-            const address = place.formatted_address;
-            
-            addMarker(lat, lng);
-            onLocationSelect({ latitude: lat, longitude: lng, address });
-          }
-          setIsLoadingLocation(false);
-        }
-      );
-    } catch (err) {
-      setError('Error selecting location');
-      console.error('Place details error:', err);
-      setIsLoadingLocation(false);
-    }
+    setSearchInput(address);
+    setSuggestions([]);
+
+    onLocationSelect({ latitude: lat, longitude: lng, address });
   };
 
   const handleAutoDetect = () => {
@@ -235,17 +155,17 @@ export default function LocationPicker({
             animate={{ opacity: 1, y: 0 }}
             className="absolute top-full left-0 right-0 mt-2 bg-white border border-primary/20 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
           >
-            {suggestions.map((suggestion) => (
+            {suggestions.map((suggestion, idx) => (
               <button
-                key={suggestion.place_id}
-                onClick={() => handleSuggestionClick(suggestion.place_id, suggestion.description)}
+                key={idx}
+                onClick={() => handleSuggestionClick(suggestion)}
                 className="w-full text-left px-4 py-3 hover:bg-primary/10 border-b border-primary/10 last:border-b-0 transition-colors"
               >
                 <p className="font-paragraph text-sm text-foreground font-medium">
-                  {suggestion.main_text}
+                  {suggestion.name || suggestion.display_name.split(',')[0]}
                 </p>
                 <p className="font-paragraph text-xs text-foreground/60">
-                  {suggestion.secondary_text}
+                  {suggestion.display_name.split(',').slice(1, 3).join(',')}
                 </p>
               </button>
             ))}
@@ -285,18 +205,21 @@ export default function LocationPicker({
         </motion.div>
       )}
 
-      {/* Map Container */}
-      <div className="relative rounded-xl overflow-hidden border border-primary/20 h-96 bg-gray-100">
-        {isLoadingMap && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-            <div className="text-center">
-              <Loader size={32} className="text-primary animate-spin mx-auto mb-2" />
-              <p className="font-paragraph text-sm text-foreground">Loading map...</p>
-            </div>
-          </div>
-        )}
-        <div ref={mapRef} className="w-full h-full" />
-      </div>
+      {/* Static Map Preview using OpenStreetMap */}
+      {selectedLocation && (
+        <div className="relative rounded-xl overflow-hidden border border-primary/20 h-96 bg-gray-100">
+          <iframe
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            scrolling="no"
+            marginHeight={0}
+            marginWidth={0}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedLocation.longitude - 0.01},${selectedLocation.latitude - 0.01},${selectedLocation.longitude + 0.01},${selectedLocation.latitude + 0.01}&layer=mapnik&marker=${selectedLocation.latitude},${selectedLocation.longitude}`}
+            style={{ border: 0 }}
+          />
+        </div>
+      )}
 
       {/* Selected Location Display */}
       {selectedLocation && (

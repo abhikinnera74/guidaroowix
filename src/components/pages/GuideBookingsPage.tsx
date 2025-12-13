@@ -3,7 +3,7 @@ import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Bookings } from '@/entities';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Calendar, User, DollarSign, Clock, MapPin, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -150,9 +150,11 @@ export default function GuideBookingsPage() {
                               width="100%"
                               height="100%"
                               frameBorder="0"
-                              src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${booking.pickupLatitude},${booking.pickupLongitude}`}
-                              allowFullScreen={true}
-                              loading="lazy"
+                              scrolling="no"
+                              marginHeight={0}
+                              marginWidth={0}
+                              src={`https://www.openstreetmap.org/export/embed.html?bbox=${booking.pickupLongitude - 0.01},${booking.pickupLatitude - 0.01},${booking.pickupLongitude + 0.01},${booking.pickupLatitude + 0.01}&layer=mapnik&marker=${booking.pickupLatitude},${booking.pickupLongitude}`}
+                              style={{ border: 0 }}
                             />
                           </div>
                         )}
@@ -160,7 +162,7 @@ export default function GuideBookingsPage() {
                         {/* Navigate Button */}
                         {booking.pickupLatitude && booking.pickupLongitude && (
                           <a
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${booking.pickupLatitude},${booking.pickupLongitude}`}
+                            href={`https://www.openstreetmap.org/directions?engine=osrm_car&route=${member?.profile?.title || 'Current Location'},${booking.pickupLatitude},${booking.pickupLongitude}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
