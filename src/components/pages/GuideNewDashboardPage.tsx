@@ -6,8 +6,6 @@ import { Bookings, Notifications, Tourists } from '@/entities';
 import { useState, useEffect } from 'react';
 import { Calendar, MapPin, User, DollarSign, Clock, Bell, CheckCircle, AlertCircle, TrendingUp, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 
 export default function GuideNewDashboardPage() {
   const { member } = useMember();
@@ -283,14 +281,6 @@ export default function GuideNewDashboardPage() {
                             </div>
                           </div>
 
-                          {/* Map Preview */}
-                          {booking.pickupLatitude && booking.pickupLongitude && (
-                            <MapPreview
-                              lat={booking.pickupLatitude}
-                              lng={booking.pickupLongitude}
-                            />
-                          )}
-
                           {/* Navigate to Tourist Button */}
                           {booking.pickupLatitude && booking.pickupLongitude && (
                             <a
@@ -414,14 +404,6 @@ export default function GuideNewDashboardPage() {
                             </div>
                           </div>
 
-                          {/* Map Preview */}
-                          {booking.pickupLatitude && booking.pickupLongitude && (
-                            <MapPreview
-                              lat={booking.pickupLatitude}
-                              lng={booking.pickupLongitude}
-                            />
-                          )}
-
                           {/* Navigate to Tourist Button */}
                           {booking.pickupLatitude && booking.pickupLongitude && (
                             <a
@@ -465,33 +447,6 @@ export default function GuideNewDashboardPage() {
       </main>
 
       <Footer />
-    </div>
-  );
-}
-
-// Map Preview Component
-interface MapPreviewProps {
-  lat: number;
-  lng: number;
-}
-
-function MapPreview({ lat, lng }: MapPreviewProps) {
-  return (
-    <div className="mt-3 rounded-lg overflow-hidden border border-secondary/20 h-48">
-      <MapContainer
-        center={[lat, lng]}
-        zoom={13}
-        style={{ width: '100%', height: '100%' }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={[lat, lng]}>
-          <Popup>Pickup Location</Popup>
-        </Marker>
-      </MapContainer>
     </div>
   );
 }

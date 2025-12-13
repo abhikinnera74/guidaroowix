@@ -67,6 +67,8 @@ export interface Guides {
   _updatedDate?: Date;
   /** @wixFieldType boolean */
   isVerified?: boolean;
+  /** @wixFieldType text */
+  role?: string;
   /** @wixFieldType boolean */
   isActive?: boolean;
   /** @wixFieldType text */
@@ -91,8 +93,6 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
-  /** @wixFieldType text */
-  role?: string;
 }
 
 
@@ -157,6 +157,8 @@ export interface Tourists {
   _createdDate?: Date;
   _updatedDate?: Date;
   /** @wixFieldType text */
+  role?: string;
+  /** @wixFieldType text */
   firstName?: string;
   /** @wixFieldType text */
   lastName?: string;
@@ -168,8 +170,6 @@ export interface Tourists {
   profilePicture?: string;
   /** @wixFieldType datetime */
   dateJoined?: Date | string;
-  /** @wixFieldType text */
-  role?: string;
 }
 
 
