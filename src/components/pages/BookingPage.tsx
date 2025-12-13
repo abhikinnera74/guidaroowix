@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, Clock, Users, CreditCard, Banknote, Smartphone, Ch
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import LocationPicker from '@/components/LocationPicker';
 
 export default function BookingPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ export default function BookingPage() {
     time: '',
     duration: 1,
     paymentMethod: 'cash', // 'card', 'upi', or 'cash'
+    pickupLocation: null as { latitude: number; longitude: number; address: string } | null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
@@ -52,6 +54,12 @@ export default function BookingPage() {
     e.preventDefault();
     if (!guide || !member) return;
 
+    // Validate location is selected
+    if (!bookingData.pickupLocation) {
+      alert('Please select a pickup/meeting location');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -67,6 +75,9 @@ export default function BookingPage() {
         touristReference: member.loginEmail || 'tourist',
         bookingStatus: 'Pending',
         paymentMethod: bookingData.paymentMethod,
+        pickupLatitude: bookingData.pickupLocation.latitude,
+        pickupLongitude: bookingData.pickupLocation.longitude,
+        pickupAddress: bookingData.pickupLocation.address,
       });
 
       // Create notification for guide
@@ -295,6 +306,15 @@ export default function BookingPage() {
               </h1>
 
               <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Location Picker */}
+                <LocationPicker
+                  onLocationSelect={(location) => 
+                    setBookingData({ ...bookingData, pickupLocation: location })
+                  }
+                  selectedLocation={bookingData.pickupLocation}
+                  required={true}
+                />
+
                 {/* Date Selection */}
                 <div>
                   <Label htmlFor="date" className="font-paragraph text-sm font-semibold text-foreground mb-3 block">
@@ -446,7 +466,7 @@ export default function BookingPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isSubmitting || !bookingData.date || !bookingData.time}
+                  disabled={isSubmitting || !bookingData.date || !bookingData.time || !bookingData.pickupLocation}
                   className="w-full px-8 py-4 bg-secondary text-secondary-foreground font-paragraph text-lg rounded-full hover:bg-secondary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Confirming Booking...' : 'Confirm Booking'}

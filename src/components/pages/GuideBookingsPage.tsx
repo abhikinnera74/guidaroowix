@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Bookings } from '@/entities';
 import { useState, useEffect } from 'react';
-import { Calendar, User, DollarSign, Clock } from 'lucide-react';
+import { Calendar, User, DollarSign, Clock, MapPin, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function GuideBookingsPage() {
@@ -124,6 +124,53 @@ export default function GuideBookingsPage() {
                         </p>
                       </div>
                     </div>
+
+                    {/* Location Section */}
+                    {booking.pickupAddress && (
+                      <div className="border-t border-secondary/10 pt-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          <MapPin size={20} className="text-secondary flex-shrink-0 mt-1" />
+                          <div className="flex-1">
+                            <p className="font-paragraph text-sm text-foreground/70">Pickup Location</p>
+                            <p className="font-paragraph font-semibold text-foreground">
+                              {booking.pickupAddress}
+                            </p>
+                            {booking.pickupLatitude && booking.pickupLongitude && (
+                              <p className="font-paragraph text-xs text-foreground/60 mt-1">
+                                {booking.pickupLatitude.toFixed(4)}, {booking.pickupLongitude.toFixed(4)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Map Preview */}
+                        {booking.pickupLatitude && booking.pickupLongitude && (
+                          <div className="mt-3 rounded-lg overflow-hidden border border-secondary/20 h-48">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              frameBorder="0"
+                              src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${booking.pickupLatitude},${booking.pickupLongitude}`}
+                              allowFullScreen={true}
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+
+                        {/* Navigate Button */}
+                        {booking.pickupLatitude && booking.pickupLongitude && (
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${booking.pickupLatitude},${booking.pickupLongitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
+                          >
+                            <Navigation size={16} />
+                            Get Directions
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-3 mt-6">

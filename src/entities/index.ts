@@ -27,6 +27,12 @@ export interface Bookings {
   touristReference?: string;
   /** @wixFieldType text */
   bookingStatus?: string;
+  /** @wixFieldType number */
+  pickupLatitude?: number;
+  /** @wixFieldType number */
+  pickupLongitude?: number;
+  /** @wixFieldType text */
+  pickupAddress?: string;
 }
 
 
