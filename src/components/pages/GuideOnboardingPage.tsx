@@ -99,6 +99,7 @@ export default function GuideOnboardingPage() {
         averageRating: 0,
         isVerified: false, // Pending verification
         isActive: false,   // Not active until verified
+        role: 'guide',     // Set role to guide
       });
 
       // Show success and redirect

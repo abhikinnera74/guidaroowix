@@ -4,16 +4,18 @@ import { useEffect } from 'react';
 import { TouristPremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { User } from 'lucide-react';
+import { useRoleRedirect } from '@/hooks/use-role-redirect';
 
 export default function LoginPage() {
   const { isAuthenticated, actions } = useMember();
   const navigate = useNavigate();
+  useRoleRedirect();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/tours');
+      // Role redirect hook will handle the navigation
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

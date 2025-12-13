@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-rou
 import { ScrollToTop } from '@/lib/scroll-to-top';
 import ErrorPage from '@/integrations/errorHandlers/ErrorPage';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
+import { RoleProtectedRoute } from '@/components/ui/role-protected-route';
 
 // Pages
 import HomePage from '@/components/pages/HomePage';
@@ -26,6 +27,7 @@ import TouristDashboardNewPage from '@/components/pages/TouristDashboardNewPage'
 import GuideProfilePageNew from '@/components/pages/GuideProfilePage';
 import GuideMyToursPage from '@/components/pages/GuideMyToursPage';
 import GuideBookingsPage from '@/components/pages/GuideBookingsPage';
+import GuideNewDashboardPage from '@/components/pages/GuideNewDashboardPage';
 
 // Layout component that includes ScrollToTop
 function Layout() {
@@ -91,9 +93,9 @@ const router = createBrowserRouter([
       {
         path: "guide-dashboard",
         element: (
-          <MemberProtectedRoute messageToSignIn="Sign in as a guide to access your dashboard">
-            <GuideDashboardPage />
-          </MemberProtectedRoute>
+          <RoleProtectedRoute allowedRoles={['guide']}>
+            <GuideNewDashboardPage />
+          </RoleProtectedRoute>
         ),
       },
       {
@@ -124,34 +126,34 @@ const router = createBrowserRouter([
       {
         path: "tourist-dashboard",
         element: (
-          <MemberProtectedRoute messageToSignIn="Sign in to view your bookings">
+          <RoleProtectedRoute allowedRoles={['tourist']}>
             <TouristDashboardNewPage />
-          </MemberProtectedRoute>
+          </RoleProtectedRoute>
         ),
       },
       // New Guide Routes
       {
         path: "guide-profile",
         element: (
-          <MemberProtectedRoute messageToSignIn="Sign in to view your profile">
+          <RoleProtectedRoute allowedRoles={['guide']}>
             <GuideProfilePageNew />
-          </MemberProtectedRoute>
+          </RoleProtectedRoute>
         ),
       },
       {
         path: "guide-my-tours",
         element: (
-          <MemberProtectedRoute messageToSignIn="Sign in to view your tours">
+          <RoleProtectedRoute allowedRoles={['guide']}>
             <GuideMyToursPage />
-          </MemberProtectedRoute>
+          </RoleProtectedRoute>
         ),
       },
       {
         path: "guide-bookings",
         element: (
-          <MemberProtectedRoute messageToSignIn="Sign in to view bookings">
+          <RoleProtectedRoute allowedRoles={['guide']}>
             <GuideBookingsPage />
-          </MemberProtectedRoute>
+          </RoleProtectedRoute>
         ),
       },
       {

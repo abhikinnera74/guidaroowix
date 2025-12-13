@@ -91,6 +91,8 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
+  /** @wixFieldType text */
+  role?: string;
 }
 
 
@@ -166,6 +168,8 @@ export interface Tourists {
   profilePicture?: string;
   /** @wixFieldType datetime */
   dateJoined?: Date | string;
+  /** @wixFieldType text */
+  role?: string;
 }
 
 

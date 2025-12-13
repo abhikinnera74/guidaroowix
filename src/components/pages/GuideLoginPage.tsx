@@ -4,16 +4,18 @@ import { useEffect } from 'react';
 import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { Compass } from 'lucide-react';
+import { useRoleRedirect } from '@/hooks/use-role-redirect';
 
 export default function GuideLoginPage() {
   const { isAuthenticated, actions } = useMember();
   const navigate = useNavigate();
+  useRoleRedirect();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/guide-onboarding');
+      // Role redirect hook will handle the navigation
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
