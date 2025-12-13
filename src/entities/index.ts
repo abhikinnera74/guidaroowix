@@ -14,6 +14,10 @@ export interface Bookings {
   /** @wixFieldType number */
   pickupLongitude?: number;
   /** @wixFieldType text */
+  touristMemberEmail?: string;
+  /** @wixFieldType text */
+  guideMemberEmail?: string;
+  /** @wixFieldType text */
   pickupAddress?: string;
   /** @wixFieldType text */
   paymentMethod?: string;
@@ -33,10 +37,6 @@ export interface Bookings {
   touristReference?: string;
   /** @wixFieldType text */
   bookingStatus?: string;
-  /** @wixFieldType text */
-  guideMemberEmail?: string;
-  /** @wixFieldType text */
-  touristMemberEmail?: string;
 }
 
 
@@ -72,6 +72,8 @@ export interface Guides {
   /** @wixFieldType boolean */
   isVerified?: boolean;
   /** @wixFieldType text */
+  memberEmail?: string;
+  /** @wixFieldType text */
   role?: string;
   /** @wixFieldType boolean */
   isActive?: boolean;
@@ -97,8 +99,6 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
-  /** @wixFieldType text */
-  memberEmail?: string;
 }
 
 
@@ -165,6 +165,8 @@ export interface Tourists {
   /** @wixFieldType text */
   role?: string;
   /** @wixFieldType text */
+  memberEmail?: string;
+  /** @wixFieldType text */
   firstName?: string;
   /** @wixFieldType text */
   lastName?: string;
@@ -176,8 +178,6 @@ export interface Tourists {
   profilePicture?: string;
   /** @wixFieldType datetime */
   dateJoined?: Date | string;
-  /** @wixFieldType text */
-  memberEmail?: string;
 }
 
 

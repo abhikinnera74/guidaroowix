@@ -3,23 +3,9 @@ import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Bookings, Notifications, Tourists } from '@/entities';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, MapPin, User, DollarSign, Clock, Bell, CheckCircle, AlertCircle, TrendingUp, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
-// @ts-ignore - leaflet package needs to be installed: npm install leaflet
-import L from 'leaflet';
-// @ts-ignore
-import 'leaflet/dist/leaflet.css';
-
-// Fix Leaflet default marker icons
-// @ts-ignore
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-// @ts-ignore
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
 
 export default function GuideNewDashboardPage() {
   const { member } = useMember();
@@ -27,7 +13,6 @@ export default function GuideNewDashboardPage() {
   const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [tourists, setTourists] = useState<{ [key: string]: Tourists }>({});
   const [loading, setLoading] = useState(true);
-  const mapRefsRef = useRef<{ [key: string]: L.Map }>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -301,16 +286,6 @@ export default function GuideNewDashboardPage() {
                             </div>
                           </div>
 
-                          {/* Map Preview */}
-                          {booking.pickupLatitude && booking.pickupLongitude && (
-                            <MapPreview
-                              lat={booking.pickupLatitude}
-                              lng={booking.pickupLongitude}
-                              bookingId={booking._id}
-                              mapRefsRef={mapRefsRef}
-                            />
-                          )}
-
                           {/* Navigate to Tourist Button */}
                           {booking.pickupLatitude && booking.pickupLongitude && (
                             <a
@@ -434,16 +409,6 @@ export default function GuideNewDashboardPage() {
                             </div>
                           </div>
 
-                          {/* Map Preview */}
-                          {booking.pickupLatitude && booking.pickupLongitude && (
-                            <MapPreview
-                              lat={booking.pickupLatitude}
-                              lng={booking.pickupLongitude}
-                              bookingId={booking._id}
-                              mapRefsRef={mapRefsRef}
-                            />
-                          )}
-
                           {/* Navigate to Tourist Button */}
                           {booking.pickupLatitude && booking.pickupLongitude && (
                             <a
@@ -487,53 +452,6 @@ export default function GuideNewDashboardPage() {
       </main>
 
       <Footer />
-    </div>
-  );
-}
-
-// Map Preview Component
-interface MapPreviewProps {
-  lat: number;
-  lng: number;
-  bookingId: string;
-  mapRefsRef: React.MutableRefObject<{ [key: string]: L.Map }>;
-}
-
-function MapPreview({ lat, lng, bookingId, mapRefsRef }: MapPreviewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Initialize map
-    const map = L.map(containerRef.current).setView([lat, lng], 13);
-
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
-    // Add marker
-    L.marker([lat, lng], {
-      title: 'Pickup Location',
-    }).addTo(map);
-
-    // Store map reference
-    mapRefsRef.current[bookingId] = map;
-
-    // Cleanup
-    return () => {
-      if (mapRefsRef.current[bookingId]) {
-        mapRefsRef.current[bookingId].remove();
-        delete mapRefsRef.current[bookingId];
-      }
-    };
-  }, [lat, lng, bookingId, mapRefsRef]);
-
-  return (
-    <div className="mt-3 rounded-lg overflow-hidden border border-secondary/20 h-48">
-      <div ref={containerRef} className="w-full h-full" />
     </div>
   );
 }
