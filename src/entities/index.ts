@@ -33,6 +33,10 @@ export interface Bookings {
   touristReference?: string;
   /** @wixFieldType text */
   bookingStatus?: string;
+  /** @wixFieldType text */
+  guideMemberEmail?: string;
+  /** @wixFieldType text */
+  touristMemberEmail?: string;
 }
 
 
@@ -93,6 +97,8 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
+  /** @wixFieldType text */
+  memberEmail?: string;
 }
 
 
@@ -170,6 +176,8 @@ export interface Tourists {
   profilePicture?: string;
   /** @wixFieldType datetime */
   dateJoined?: Date | string;
+  /** @wixFieldType text */
+  memberEmail?: string;
 }
 
 

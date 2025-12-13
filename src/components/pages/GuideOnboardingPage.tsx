@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { CheckCircle, ArrowRight, Upload } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const INDIAN_CITIES = [
   'Delhi',
@@ -42,6 +43,7 @@ export default function GuideOnboardingPage() {
   const { member } = useMember();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [formData, setFormData] = useState({
     fullName: member?.contact?.firstName || '',
     email: member?.loginEmail || '',
@@ -54,6 +56,34 @@ export default function GuideOnboardingPage() {
     hourlyRate: 500,
     profilePicture: '',
   });
+
+  // Check if guide has already completed onboarding
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        if (!member?.loginEmail) {
+          setCheckingOnboarding(false);
+          return;
+        }
+
+        // Check if guide profile already exists
+        const { items: guides } = await BaseCrudService.getAll<Guides>('guides');
+        const existingGuide = guides.find(g => g.email === member.loginEmail);
+
+        if (existingGuide) {
+          // Guide has already completed onboarding, redirect to dashboard
+          navigate('/guide-dashboard', { replace: true });
+        } else {
+          setCheckingOnboarding(false);
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        setCheckingOnboarding(false);
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [member?.loginEmail, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -100,11 +130,11 @@ export default function GuideOnboardingPage() {
         isVerified: false, // Pending verification
         isActive: false,   // Not active until verified
         role: 'guide',     // Set role to guide
+        memberEmail: member?.loginEmail, // Store member email for role-based filtering
       });
 
-      // Show success and redirect
-      alert('Your profile has been submitted for verification! You will be notified once approved.');
-      navigate('/guide-dashboard');
+      // Redirect to dashboard (onboarding complete)
+      navigate('/guide-dashboard', { replace: true });
     } catch (error) {
       console.error('Error creating guide profile:', error);
       alert('Failed to create profile. Please try again.');
@@ -128,7 +158,12 @@ export default function GuideOnboardingPage() {
     <div className="min-h-screen bg-background">
       <GuidePremiumHeader />
 
-      <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
+      {checkingOnboarding ? (
+        <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16 flex items-center justify-center min-h-[60vh]">
+          <LoadingSpinner />
+        </main>
+      ) : (
+        <main className="max-w-[120rem] mx-auto px-6 lg:px-12 py-16">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -495,6 +530,7 @@ export default function GuideOnboardingPage() {
           </form>
         </motion.div>
       </main>
+      )}
 
       <Footer />
     </div>
