@@ -3,14 +3,15 @@ import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Bookings, Notifications, Tourists, Guides } from '@/entities';
-import { useState, useEffect } from 'react';
-import { Calendar, MapPin, User, DollarSign, Clock, Bell, CheckCircle, AlertCircle, TrendingUp, Navigation, Phone, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, MapPin, User, DollarSign, Clock, Bell, CheckCircle, AlertCircle, TrendingUp, Navigation, Phone, AlertTriangle, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BookingMapPreview } from '@/components/BookingMapPreview';
 import { GuideAvailabilityCalendar } from '@/components/GuideAvailabilityCalendar';
 import { GuideEarningsSection } from '@/components/GuideEarningsSection';
 import { GuideReviewsSection } from '@/components/GuideReviewsSection';
 import { GuideNotificationsCenter } from '@/components/GuideNotificationsCenter';
+import { MessagingPanel } from '@/components/MessagingPanel';
 
 export default function GuideNewDashboardPage() {
   const { member } = useMember();
@@ -21,6 +22,32 @@ export default function GuideNewDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showVerificationAlert, setShowVerificationAlert] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'availability' | 'earnings' | 'reviews'>('overview');
+  const [messagingOpen, setMessagingOpen] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<{ email: string; name: string; bookingId?: string } | null>(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollRef = useRef(0);
+
+  // Handle scroll for header hide/show
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      const scrollDelta = currentScroll - lastScrollRef.current;
+
+      // Hide header when scrolling down more than 50px
+      if (scrollDelta > 50 && headerVisible) {
+        setHeaderVisible(false);
+      }
+      // Show header when scrolling up more than 50px
+      else if (scrollDelta < -50 && !headerVisible) {
+        setHeaderVisible(true);
+      }
+
+      lastScrollRef.current = currentScroll;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [headerVisible]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,12 +121,22 @@ export default function GuideNewDashboardPage() {
     }
   };
 
+  const handleOpenMessaging = (touristEmail: string, touristName: string, bookingId?: string) => {
+    setSelectedConversation({ email: touristEmail, name: touristName, bookingId });
+    setMessagingOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* 1. TOP NAVIGATION BAR - Sticky */}
-      <div className="sticky top-0 z-40 bg-background">
+      {/* 1. TOP NAVIGATION BAR - Sticky with Hide/Show Animation */}
+      <motion.div
+        initial={{ y: 0 }}
+        animate={{ y: headerVisible ? 0 : -100 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="sticky top-0 z-40 bg-background"
+      >
         <GuidePremiumHeader />
-      </div>
+      </motion.div>
 
       {/* 2. MAIN CONTENT - Vertical Flow Container */}
       <main className="flex-1 w-full">
@@ -408,6 +445,17 @@ export default function GuideNewDashboardPage() {
                           {/* Action Buttons */}
                           <div className="flex gap-3 mt-6">
                             <button
+                              onClick={() => handleOpenMessaging(
+                                booking.touristMemberEmail || booking.touristReference || '',
+                                tourists[booking.touristReference!]?.firstName || tourists[booking.touristMemberEmail!]?.firstName || 'Tourist',
+                                booking._id
+                              )}
+                              className="flex-1 px-4 py-2 bg-secondary text-white font-paragraph rounded-full hover:bg-secondary/90 transition-all flex items-center justify-center gap-2"
+                            >
+                              <MessageCircle size={16} />
+                              Message
+                            </button>
+                            <button
                               onClick={() => handleAcceptBooking(booking._id)}
                               className="flex-1 px-4 py-2 bg-green-600 text-white font-paragraph rounded-full hover:bg-green-700 transition-all"
                             >
@@ -597,6 +645,21 @@ export default function GuideNewDashboardPage() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Messaging Panel */}
+      {selectedConversation && (
+        <MessagingPanel
+          isOpen={messagingOpen}
+          onClose={() => {
+            setMessagingOpen(false);
+            setSelectedConversation(null);
+          }}
+          guideEmail={member?.loginEmail || ''}
+          bookingId={selectedConversation.bookingId}
+          touristEmail={selectedConversation.email}
+          touristName={selectedConversation.name}
+        />
+      )}
     </div>
   );
 }
