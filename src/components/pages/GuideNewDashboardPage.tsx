@@ -4,8 +4,9 @@ import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Bookings, Notifications, Tourists } from '@/entities';
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, User, DollarSign, Clock, Bell, CheckCircle, AlertCircle, TrendingUp, Navigation } from 'lucide-react';
+import { Calendar, MapPin, User, DollarSign, Clock, Bell, CheckCircle, AlertCircle, TrendingUp, Navigation, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { BookingMapPreview } from '@/components/BookingMapPreview';
 
 export default function GuideNewDashboardPage() {
   const { member } = useMember();
@@ -235,16 +236,27 @@ export default function GuideNewDashboardPage() {
                           <p className="font-paragraph font-semibold text-foreground">
                             {tourists[booking.touristReference!]?.firstName || tourists[booking.touristMemberEmail!]?.firstName || booking.touristReference || 'Unknown'}
                           </p>
+                          {(tourists[booking.touristReference!]?.phoneNumber || tourists[booking.touristMemberEmail!]?.phoneNumber) && (
+                            <p className="font-paragraph text-xs text-foreground/60 mt-1 flex items-center gap-1">
+                              <Phone size={12} />
+                              {tourists[booking.touristReference!]?.phoneNumber || tourists[booking.touristMemberEmail!]?.phoneNumber}
+                            </p>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <Calendar size={20} className="text-secondary flex-shrink-0 mt-1" />
                         <div>
-                          <p className="font-paragraph text-sm text-foreground/70">Date</p>
+                          <p className="font-paragraph text-sm text-foreground/70">Date & Time</p>
                           <p className="font-paragraph font-semibold text-foreground">
                             {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('en-IN') : 'TBD'}
                           </p>
+                          {booking.bookingTime && (
+                            <p className="font-paragraph text-xs text-foreground/60 mt-1">
+                              {booking.bookingTime}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -268,10 +280,10 @@ export default function GuideNewDashboardPage() {
                         </div>
                       </div>
 
-                      {/* Location Section */}
+                      {/* Location Section with Map */}
                       {booking.pickupAddress && (
                         <div className="border-t border-secondary/10 pt-4">
-                          <div className="flex items-start gap-3 mb-3">
+                          <div className="flex items-start gap-3 mb-4">
                             <MapPin size={20} className="text-secondary flex-shrink-0 mt-1" />
                             <div className="flex-1">
                               <p className="font-paragraph text-sm text-foreground/70">Pickup Location</p>
@@ -286,13 +298,25 @@ export default function GuideNewDashboardPage() {
                             </div>
                           </div>
 
+                          {/* Map Preview */}
+                          {booking.pickupLatitude && booking.pickupLongitude && (
+                            <div className="mb-4">
+                              <BookingMapPreview
+                                latitude={booking.pickupLatitude}
+                                longitude={booking.pickupLongitude}
+                                address={booking.pickupAddress}
+                                height="h-48"
+                              />
+                            </div>
+                          )}
+
                           {/* Navigate to Tourist Button */}
                           {booking.pickupLatitude && booking.pickupLongitude && (
                             <a
                               href={`https://www.google.com/maps/dir/?api=1&destination=${booking.pickupLatitude},${booking.pickupLongitude}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
                             >
                               <Navigation size={16} />
                               Navigate to Tourist
@@ -358,16 +382,27 @@ export default function GuideNewDashboardPage() {
                           <p className="font-paragraph font-semibold text-foreground">
                             {tourists[booking.touristReference!]?.firstName || tourists[booking.touristMemberEmail!]?.firstName || booking.touristReference || 'Unknown'}
                           </p>
+                          {(tourists[booking.touristReference!]?.phoneNumber || tourists[booking.touristMemberEmail!]?.phoneNumber) && (
+                            <p className="font-paragraph text-xs text-foreground/60 mt-1 flex items-center gap-1">
+                              <Phone size={12} />
+                              {tourists[booking.touristReference!]?.phoneNumber || tourists[booking.touristMemberEmail!]?.phoneNumber}
+                            </p>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <Calendar size={20} className="text-secondary flex-shrink-0 mt-1" />
                         <div>
-                          <p className="font-paragraph text-sm text-foreground/70">Date</p>
+                          <p className="font-paragraph text-sm text-foreground/70">Date & Time</p>
                           <p className="font-paragraph font-semibold text-foreground">
                             {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('en-IN') : 'TBD'}
                           </p>
+                          {booking.bookingTime && (
+                            <p className="font-paragraph text-xs text-foreground/60 mt-1">
+                              {booking.bookingTime}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -391,10 +426,10 @@ export default function GuideNewDashboardPage() {
                         </div>
                       </div>
 
-                      {/* Location Section */}
+                      {/* Location Section with Map */}
                       {booking.pickupAddress && (
                         <div className="border-t border-secondary/10 pt-4">
-                          <div className="flex items-start gap-3 mb-3">
+                          <div className="flex items-start gap-3 mb-4">
                             <MapPin size={20} className="text-secondary flex-shrink-0 mt-1" />
                             <div className="flex-1">
                               <p className="font-paragraph text-sm text-foreground/70">Pickup Location</p>
@@ -409,13 +444,25 @@ export default function GuideNewDashboardPage() {
                             </div>
                           </div>
 
+                          {/* Map Preview */}
+                          {booking.pickupLatitude && booking.pickupLongitude && (
+                            <div className="mb-4">
+                              <BookingMapPreview
+                                latitude={booking.pickupLatitude}
+                                longitude={booking.pickupLongitude}
+                                address={booking.pickupAddress}
+                                height="h-48"
+                              />
+                            </div>
+                          )}
+
                           {/* Navigate to Tourist Button */}
                           {booking.pickupLatitude && booking.pickupLongitude && (
                             <a
                               href={`https://www.google.com/maps/dir/?api=1&destination=${booking.pickupLatitude},${booking.pickupLongitude}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-paragraph text-sm rounded-lg hover:bg-secondary/90 transition-all"
                             >
                               <Navigation size={16} />
                               Navigate to Tourist

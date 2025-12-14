@@ -66,11 +66,13 @@ export default function GuideOnboardingPage() {
           return;
         }
 
-        // Check if guide profile already exists
+        // Check if guide profile already exists using memberEmail (more reliable)
         const { items: guides } = await BaseCrudService.getAll<Guides>('guides');
-        const existingGuide = guides.find(g => g.email === member.loginEmail);
+        const existingGuide = guides.find(
+          g => g.memberEmail === member.loginEmail || g.email === member.loginEmail
+        );
 
-        if (existingGuide) {
+        if (existingGuide && existingGuide.isActive !== false) {
           // Guide has already completed onboarding, redirect to dashboard
           navigate('/guide-dashboard', { replace: true });
         } else {
