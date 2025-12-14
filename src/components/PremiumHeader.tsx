@@ -3,6 +3,7 @@ import { useMember } from '@/integrations';
 import { Menu, X, Compass, MapPin, LogIn, Users } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { GuideNotificationsCenter } from '@/components/GuideNotificationsCenter';
 
 interface NavItemProps {
   label: string;
