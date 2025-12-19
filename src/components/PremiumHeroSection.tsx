@@ -161,10 +161,8 @@ export function PremiumHeroSection({ onLoadComplete }: PremiumHeroProps) {
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
       />
-
       {/* Gradient Overlay for depth */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 pointer-events-none" />
-
       {/* Parallax Depth Layers */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Layer 1 - Furthest back */}
@@ -194,7 +192,6 @@ export function PremiumHeroSection({ onLoadComplete }: PremiumHeroProps) {
           }}
         />
       </div>
-
       {/* Content Overlay - Floating Text with Depth */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto">
         {/* Top floating text - Badge */}
@@ -237,9 +234,7 @@ export function PremiumHeroSection({ onLoadComplete }: PremiumHeroProps) {
           transition={{ duration: 1, delay: 0.8 }}
           className="absolute bottom-40 md:bottom-48 text-center max-w-2xl px-4 md:px-6 z-30"
         >
-          <p className="text-base md:text-lg lg:text-xl text-white/95 font-paragraph font-light leading-relaxed drop-shadow-lg">
-            Connect with expert local guides and experience authentic adventures that go beyond the guidebook.
-          </p>
+          <p className="text-base md:text-lg lg:text-xl text-white/95 font-paragraph font-light leading-relaxed drop-shadow-lg">{"Conect with expert local guides and experience authentic adventures that go beyond the guidebook."}</p>
         </motion.div>
 
         {/* CTA Buttons - Foreground */}
@@ -270,7 +265,6 @@ export function PremiumHeroSection({ onLoadComplete }: PremiumHeroProps) {
           </Link>
         </motion.div>
       </div>
-
       {/* Scroll indicator */}
       <motion.div
         animate={{ y: [0, 8, 0] }}
