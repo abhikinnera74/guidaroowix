@@ -18,6 +18,7 @@ export default function TouristDashboardNewPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGuideEmail, setSelectedGuideEmail] = useState<string>('');
   const [selectedGuideName, setSelectedGuideName] = useState<string>('');
+  const [floatingChatOpen, setFloatingChatOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +55,7 @@ export default function TouristDashboardNewPage() {
     setSelectedBookingId(bookingId);
     setSelectedGuideEmail(guideEmail);
     setSelectedGuideName(guideName);
-    setChatOpen(true);
+    setFloatingChatOpen(true);
   };
 
   const getBookingNotifications = (bookingId: string) => {
@@ -273,15 +274,16 @@ export default function TouristDashboardNewPage() {
         </motion.div>
       </main>
 
-      {/* Chat Box */}
+      {/* Chat Box - Floating */}
       {selectedBookingId && (
         <ChatBox
           bookingId={selectedBookingId}
           otherUserEmail={selectedGuideEmail}
           otherUserName={selectedGuideName}
           userType="tourist"
-          isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
+          isOpen={floatingChatOpen}
+          onClose={() => setFloatingChatOpen(!floatingChatOpen)}
+          isFloating={true}
         />
       )}
 

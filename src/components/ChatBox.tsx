@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { BaseCrudService } from '@/integrations';
 import { Messages } from '@/entities';
 import { useMember } from '@/integrations';
-import { Send, X } from 'lucide-react';
+import { Send, X, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
@@ -14,6 +14,7 @@ interface ChatBoxProps {
   userType: 'guide' | 'tourist';
   isOpen: boolean;
   onClose: () => void;
+  isFloating?: boolean;
 }
 
 export default function ChatBox({
@@ -23,12 +24,15 @@ export default function ChatBox({
   userType,
   isOpen,
   onClose,
+  isFloating = false,
 }: ChatBoxProps) {
   const { member } = useMember();
   const [messages, setMessages] = useState<Messages[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,15 +41,6 @@ export default function ChatBox({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    if (isOpen && bookingId) {
-      loadMessages();
-      // Poll for new messages every 3 seconds
-      const interval = setInterval(loadMessages, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [isOpen, bookingId]);
 
   const loadMessages = async () => {
     try {
@@ -58,10 +53,29 @@ export default function ChatBox({
           return timeA - timeB;
         });
       setMessages(bookingMessages);
+      
+      // Count unread messages from other user
+      const unread = bookingMessages.filter(
+        msg => msg.senderEmail === otherUserEmail && msg.senderEmail !== member?.loginEmail
+      ).length;
+      setUnreadCount(unread);
     } catch (error) {
       console.error('Error loading messages:', error);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && bookingId) {
+      loadMessages();
+      // Poll for new messages every 2 seconds (improved from 3)
+      pollIntervalRef.current = setInterval(loadMessages, 2000);
+      return () => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+      };
+    }
+  }, [isOpen, bookingId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +103,35 @@ export default function ChatBox({
     }
   };
 
+  // Floating button version
+  if (isFloating && !isOpen) {
+    return (
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => {
+          // This should be handled by parent component
+          onClose(); // Toggle
+        }}
+        className="fixed bottom-6 right-6 w-16 h-16 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-40 relative"
+        aria-label="Open chat"
+      >
+        <MessageCircle size={24} />
+        {unreadCount > 0 && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
+          >
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </motion.div>
+        )}
+      </motion.button>
+    );
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -96,7 +139,11 @@ export default function ChatBox({
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-primary/10 flex flex-col z-50"
+          className={`${
+            isFloating 
+              ? 'fixed bottom-6 right-6 w-96 h-[600px]' 
+              : 'w-full h-full'
+          } bg-white rounded-2xl shadow-2xl border border-primary/10 flex flex-col z-50`}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-primary/10 bg-primary/5 rounded-t-2xl">

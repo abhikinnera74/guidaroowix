@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Image } from '@/components/ui/image';
 
@@ -10,11 +10,27 @@ export function TouristHeader() {
   const { member, isAuthenticated, isLoading, actions } = useMember();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const lastScrollRef = useRef(0);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Handle scroll for reactive styling
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      setIsScrolled(currentScroll > 10);
+      lastScrollRef.current = currentScroll;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="bg-background border-b border-primary/10 sticky top-0 z-50">
+    <header className={`bg-background border-b border-primary/10 sticky top-0 z-50 transition-all duration-300 ${
+      isScrolled ? 'shadow-md' : ''
+    }`}>
       <div className="max-w-[120rem] mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo - Left */}
@@ -203,11 +219,27 @@ export function GuideHeader() {
   const { member, isAuthenticated, isLoading, actions } = useMember();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const lastScrollRef = useRef(0);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Handle scroll for reactive styling
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      setIsScrolled(currentScroll > 10);
+      lastScrollRef.current = currentScroll;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="bg-background border-b border-secondary/10 sticky top-0 z-50">
+    <header className={`bg-background border-b border-secondary/10 sticky top-0 z-50 transition-all duration-300 ${
+      isScrolled ? 'shadow-md' : ''
+    }`}>
       <div className="max-w-[120rem] mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
