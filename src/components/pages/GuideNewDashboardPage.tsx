@@ -12,6 +12,7 @@ import { GuideEarningsSection } from '@/components/GuideEarningsSection';
 import { GuideReviewsSection } from '@/components/GuideReviewsSection';
 import { GuideNotificationsCenter } from '@/components/GuideNotificationsCenter';
 import { MessagingPanel } from '@/components/MessagingPanel';
+import { BookingNotificationModal } from '@/components/BookingNotificationModal';
 
 export default function GuideNewDashboardPage() {
   const { member } = useMember();
@@ -26,6 +27,10 @@ export default function GuideNewDashboardPage() {
   const [selectedConversation, setSelectedConversation] = useState<{ email: string; name: string; bookingId?: string } | null>(null);
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollRef = useRef(0);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+  const [selectedNotificationBooking, setSelectedNotificationBooking] = useState<Bookings | null>(null);
+  const [selectedNotificationTourist, setSelectedNotificationTourist] = useState<string>('');
+  const [isProcessingBooking, setIsProcessingBooking] = useState(false);
 
   // Handle scroll for header hide/show
   useEffect(() => {
@@ -124,6 +129,63 @@ export default function GuideNewDashboardPage() {
   const handleOpenMessaging = (touristEmail: string, touristName: string, bookingId?: string) => {
     setSelectedConversation({ email: touristEmail, name: touristName, bookingId });
     setMessagingOpen(true);
+  };
+
+  const handleNotificationBookingAction = (bookingId: string, action: 'accept' | 'decline') => {
+    // Refresh data after accepting/declining
+    const fetchData = async () => {
+      try {
+        const { items: bookingItems } = await BaseCrudService.getAll<Bookings>('bookings');
+        const guideBookings = bookingItems.filter(b => 
+          b.guideMemberEmail === member?.loginEmail || b.guideReference === member?.loginEmail
+        );
+        setBookings(guideBookings);
+      } catch (error) {
+        console.error('Error refreshing bookings:', error);
+      }
+    };
+    fetchData();
+    setNotificationModalOpen(false);
+  };
+
+  const handleOpenNotificationModal = (booking: Bookings, touristName: string) => {
+    setSelectedNotificationBooking(booking);
+    setSelectedNotificationTourist(touristName);
+    setNotificationModalOpen(true);
+  };
+
+  const handleAcceptNotificationBooking = async () => {
+    if (!selectedNotificationBooking) return;
+    setIsProcessingBooking(true);
+    try {
+      await BaseCrudService.update('bookings', {
+        _id: selectedNotificationBooking._id,
+        bookingStatus: 'Confirmed',
+      });
+      handleNotificationBookingAction(selectedNotificationBooking._id, 'accept');
+    } catch (error) {
+      console.error('Error accepting booking:', error);
+      alert('Failed to accept booking. Please try again.');
+    } finally {
+      setIsProcessingBooking(false);
+    }
+  };
+
+  const handleDeclineNotificationBooking = async () => {
+    if (!selectedNotificationBooking) return;
+    setIsProcessingBooking(true);
+    try {
+      await BaseCrudService.update('bookings', {
+        _id: selectedNotificationBooking._id,
+        bookingStatus: 'Declined',
+      });
+      handleNotificationBookingAction(selectedNotificationBooking._id, 'decline');
+    } catch (error) {
+      console.error('Error declining booking:', error);
+      alert('Failed to decline booking. Please try again.');
+    } finally {
+      setIsProcessingBooking(false);
+    }
   };
 
   return (
@@ -660,6 +722,17 @@ export default function GuideNewDashboardPage() {
           touristName={selectedConversation.name}
         />
       )}
+
+      {/* Booking Notification Modal */}
+      <BookingNotificationModal
+        isOpen={notificationModalOpen}
+        booking={selectedNotificationBooking}
+        touristName={selectedNotificationTourist}
+        onClose={() => setNotificationModalOpen(false)}
+        onAccept={handleAcceptNotificationBooking}
+        onDecline={handleDeclineNotificationBooking}
+        isLoading={isProcessingBooking}
+      />
     </div>
   );
 }

@@ -1,40 +1,61 @@
-import { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bell, X, Check, AlertCircle, CheckCircle2, MapPin, Phone, Clock, DollarSign, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BaseCrudService } from '@/integrations';
-import { Notifications } from '@/entities';
+import { Notifications, Bookings } from '@/entities';
 
 interface GuideNotificationsCenterProps {
   guideEmail: string;
+  onBookingAction?: (bookingId: string, action: 'accept' | 'decline') => void;
 }
 
-export function GuideNotificationsCenter({ guideEmail }: GuideNotificationsCenterProps) {
+export function GuideNotificationsCenter({ guideEmail, onBookingAction }: GuideNotificationsCenterProps) {
   const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [bookingDetails, setBookingDetails] = useState<{ [key: string]: Bookings }>({});
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const { items } = await BaseCrudService.getAll<Notifications>('notifications');
-        const guideNotifications = items.sort((a, b) => {
+  const fetchNotifications = async () => {
+    try {
+      const { items } = await BaseCrudService.getAll<Notifications>('notifications');
+      const guideNotifications = items
+        .filter(n => n.notificationType === 'New Booking') // Only show new booking notifications
+        .sort((a, b) => {
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
           return dateB - dateA;
         });
-        setNotifications(guideNotifications);
-        setUnreadCount(guideNotifications.filter(n => !n.isRead).length);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setNotifications(guideNotifications);
+      setUnreadCount(guideNotifications.filter(n => !n.isRead).length);
 
+      // Fetch booking details for each notification
+      const { items: bookings } = await BaseCrudService.getAll<Bookings>('bookings');
+      const bookingMap: { [key: string]: Bookings } = {};
+      bookings.forEach(booking => {
+        bookingMap[booking._id] = booking;
+      });
+      setBookingDetails(bookingMap);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (guideEmail) {
       fetchNotifications();
+      // Poll for new notifications every 3 seconds
+      pollIntervalRef.current = setInterval(fetchNotifications, 3000);
     }
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
   }, [guideEmail]);
 
   const handleMarkAsRead = async (notificationId: string) => {
@@ -50,6 +71,54 @@ export function GuideNotificationsCenter({ guideEmail }: GuideNotificationsCente
       setUnreadCount(Math.max(0, unreadCount - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleAcceptBooking = async (notificationId: string, bookingId: string) => {
+    try {
+      // Update booking status
+      await BaseCrudService.update('bookings', {
+        _id: bookingId,
+        bookingStatus: 'Confirmed',
+      });
+
+      // Mark notification as read
+      await handleMarkAsRead(notificationId);
+
+      // Call parent callback if provided
+      if (onBookingAction) {
+        onBookingAction(bookingId, 'accept');
+      }
+
+      // Refresh notifications
+      await fetchNotifications();
+    } catch (error) {
+      console.error('Error accepting booking:', error);
+      alert('Failed to accept booking. Please try again.');
+    }
+  };
+
+  const handleDeclineBooking = async (notificationId: string, bookingId: string) => {
+    try {
+      // Update booking status
+      await BaseCrudService.update('bookings', {
+        _id: bookingId,
+        bookingStatus: 'Declined',
+      });
+
+      // Mark notification as read
+      await handleMarkAsRead(notificationId);
+
+      // Call parent callback if provided
+      if (onBookingAction) {
+        onBookingAction(bookingId, 'decline');
+      }
+
+      // Refresh notifications
+      await fetchNotifications();
+    } catch (error) {
+      console.error('Error declining booking:', error);
+      alert('Failed to decline booking. Please try again.');
     }
   };
 
@@ -90,6 +159,11 @@ export function GuideNotificationsCenter({ guideEmail }: GuideNotificationsCente
       default:
         return <Bell size={20} className="text-secondary" />;
     }
+  };
+
+  const navigateToLocation = (latitude: number, longitude: number) => {
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+    window.open(googleMapsUrl, '_blank');
   };
 
   return (
@@ -164,71 +238,151 @@ export function GuideNotificationsCenter({ guideEmail }: GuideNotificationsCente
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell size={32} className="text-secondary/20 mx-auto mb-2" />
-                <p className="font-paragraph text-foreground/70">No notifications yet</p>
+                <p className="font-paragraph text-foreground/70">No new bookings</p>
               </div>
             ) : (
               <div className="divide-y divide-secondary/10">
-                {notifications.map((notification, index) => (
-                  <motion.div
-                    key={notification._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`p-4 hover:bg-background transition-all cursor-pointer group ${
-                      !notification.isRead ? 'bg-secondary/5' : ''
-                    }`}
-                    onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {getNotificationIcon(notification.notificationType)}
-                      </div>
+                {notifications.map((notification, index) => {
+                  // Find the booking ID from the notification message or use a default
+                  const bookingId = Object.keys(bookingDetails).find(
+                    id => bookingDetails[id]?.bookingDate === notification.bookingDate
+                  );
+                  const booking = bookingId ? bookingDetails[bookingId] : null;
 
-                      <div className="flex-1 min-w-0">
-                        <p className="font-paragraph font-semibold text-foreground text-sm">
-                          {notification.notificationType}
-                        </p>
-                        <p className="font-paragraph text-sm text-foreground/70 mt-1 line-clamp-2">
-                          {notification.message}
-                        </p>
+                  return (
+                    <motion.div
+                      key={notification._id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`p-4 hover:bg-background transition-all group ${
+                        !notification.isRead ? 'bg-secondary/5' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.notificationType)}
+                        </div>
 
-                        {notification.touristName && (
-                          <p className="font-paragraph text-xs text-foreground/60 mt-2">
-                            Tourist: {notification.touristName}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-paragraph font-semibold text-foreground text-sm">
+                            {notification.notificationType}
                           </p>
+                          <p className="font-paragraph text-sm text-foreground/70 mt-1">
+                            {notification.message}
+                          </p>
+
+                          {/* Booking Details */}
+                          <div className="mt-3 space-y-2 bg-background rounded-lg p-3">
+                            {notification.touristName && (
+                              <div className="flex items-center gap-2">
+                                <User size={16} className="text-secondary flex-shrink-0" />
+                                <span className="font-paragraph text-xs text-foreground">
+                                  {notification.touristName}
+                                </span>
+                              </div>
+                            )}
+
+                            {notification.bookingDate && (
+                              <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-secondary flex-shrink-0" />
+                                <span className="font-paragraph text-xs text-foreground">
+                                  {new Date(notification.bookingDate).toLocaleDateString('en-IN')}
+                                </span>
+                              </div>
+                            )}
+
+                            {notification.bookingDuration && (
+                              <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-secondary flex-shrink-0" />
+                                <span className="font-paragraph text-xs text-foreground">
+                                  {notification.bookingDuration} hour{notification.bookingDuration !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            )}
+
+                            {notification.bookingPrice && (
+                              <div className="flex items-center gap-2">
+                                <DollarSign size={16} className="text-secondary flex-shrink-0" />
+                                <span className="font-paragraph text-xs font-semibold text-secondary">
+                                  ₹{notification.bookingPrice.toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                            )}
+
+                            {booking?.pickupAddress && (
+                              <div className="flex items-start gap-2">
+                                <MapPin size={16} className="text-secondary flex-shrink-0 mt-0.5" />
+                                <span className="font-paragraph text-xs text-foreground">
+                                  {booking.pickupAddress}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          <p className="font-paragraph text-xs text-foreground/50 mt-2">
+                            {new Date(notification.createdAt || 0).toLocaleTimeString('en-IN', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+
+                        {!notification.isRead && (
+                          <div className="flex-shrink-0 w-2 h-2 bg-secondary rounded-full mt-2" />
                         )}
 
-                        {notification.bookingDate && (
-                          <p className="font-paragraph text-xs text-foreground/60">
-                            {new Date(notification.bookingDate).toLocaleDateString('en-IN')}
-                          </p>
-                        )}
-
-                        <p className="font-paragraph text-xs text-foreground/50 mt-2">
-                          {new Date(notification.createdAt || 0).toLocaleTimeString('en-IN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteNotification(notification._id);
+                          }}
+                          className="flex-shrink-0 p-1 text-foreground/50 hover:text-red-600 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <X size={16} />
+                        </motion.button>
                       </div>
 
-                      {!notification.isRead && (
-                        <div className="flex-shrink-0 w-2 h-2 bg-secondary rounded-full mt-2" />
+                      {/* Action Buttons */}
+                      {booking && booking.bookingStatus === 'Pending' && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-secondary/10">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleAcceptBooking(notification._id, booking._id)}
+                            className="flex-1 px-3 py-2 bg-green-600 text-white font-paragraph text-xs rounded-lg hover:bg-green-700 transition-all flex items-center justify-center gap-1"
+                          >
+                            <CheckCircle2 size={14} />
+                            Accept
+                          </motion.button>
+
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleDeclineBooking(notification._id, booking._id)}
+                            className="flex-1 px-3 py-2 border border-red-600 text-red-600 font-paragraph text-xs rounded-lg hover:bg-red-50 transition-all"
+                          >
+                            Decline
+                          </motion.button>
+
+                          {booking.pickupLatitude && booking.pickupLongitude && (
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => navigateToLocation(booking.pickupLatitude!, booking.pickupLongitude!)}
+                              className="flex-1 px-3 py-2 bg-secondary text-white font-paragraph text-xs rounded-lg hover:bg-secondary/90 transition-all flex items-center justify-center gap-1"
+                              title="Navigate to tourist location"
+                            >
+                              <MapPin size={14} />
+                              Navigate
+                            </motion.button>
+                          )}
+                        </div>
                       )}
-
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteNotification(notification._id);
-                        }}
-                        className="flex-shrink-0 p-1 text-foreground/50 hover:text-red-600 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <X size={16} />
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </motion.div>
