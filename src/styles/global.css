@@ -100,3 +100,18 @@ main {
   animation: slideUp 0.3s ease-in-out forwards;
 }
 
+/* Gradient Radial Background */
+.bg-gradient-radial {
+  background: radial-gradient(var(--tw-gradient-stops));
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove main padding for hero section */
+main {
+  padding-top: 0 !important;
+}
+

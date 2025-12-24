@@ -33,6 +33,9 @@ export default {
                 'primary-foreground': '#FFFFFF',
                 primary: '#0B3D0B'
             },
+            backgroundImage: {
+                'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            },
         },
     },
     future: {
