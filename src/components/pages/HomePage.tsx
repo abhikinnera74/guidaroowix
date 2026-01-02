@@ -117,58 +117,160 @@ const FloatingNavbar = () => {
 
 const HeroSection = () => {
   const { isAuthenticated, actions } = useMember();
+  const containerRef = useRef(null);
+  const { scrollY } = useScroll({ target: containerRef });
+  const y = useTransform(scrollY, [0, 300], [0, 100]);
 
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Dark Green Gradient Background with Glow */}
+    <section ref={containerRef} className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-20">
+      {/* Animated Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0B3D0B] via-[#1a5a1a] to-[#0d2d0d]">
-        {/* Soft Glow Effect */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-[#2d7a2d]/30 to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-radial from-[#1a5a1a]/20 to-transparent rounded-full blur-3xl" />
+        {/* Animated Gradient Orbs */}
+        <motion.div
+          animate={{
+            x: [0, 50, -50, 0],
+            y: [0, 30, -30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-gradient-radial from-[#2d7a2d]/40 to-transparent rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            x: [0, -40, 40, 0],
+            y: [0, -40, 40, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-1/4 right-1/4 w-[700px] h-[700px] bg-gradient-radial from-[#1a5a1a]/30 to-transparent rounded-full blur-3xl"
+        />
+        <div className="absolute inset-0 opacity-5 mix-blend-overlay" style={{
+          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+        }} />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-[100rem] mx-auto px-6 lg:px-12 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <h1 className="font-heading text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 leading-tight">
-            Discover the World
-          </h1>
-        </motion.div>
+      <div className="relative z-10 max-w-[120rem] mx-auto px-6 lg:px-12 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-80px)]">
+          {/* Left Content */}
+          <div className="flex flex-col justify-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="space-y-6"
+            >
+              {/* Accent Label */}
+              <div className="inline-flex items-center gap-2 w-fit">
+                <div className="w-2 h-2 bg-lavenderaccent rounded-full" />
+                <span className="text-lavenderaccent font-paragraph text-sm font-semibold tracking-widest uppercase">
+                  Explore & Experience
+                </span>
+              </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-        >
-          <p className="font-paragraph text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-12">
-            Connect with expert local guides and experience authentic adventures
-          </p>
-        </motion.div>
+              {/* Main Heading */}
+              <div className="space-y-4">
+                <h1 className="font-heading text-7xl md:text-8xl lg:text-9xl font-black text-white leading-none">
+                  <span className="block">Discover</span>
+                  <span className="block bg-gradient-to-r from-lavenderaccent via-[#E0D4FF] to-lavenderaccent bg-clip-text text-transparent">
+                    Authentic
+                  </span>
+                  <span className="block">Adventures</span>
+                </h1>
+              </div>
 
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-6"
-        >
-          <Link
-            to="/tours"
-            className="px-10 py-4 bg-white text-primary font-heading font-bold text-lg rounded-full hover:bg-lavenderaccent transition-all duration-300 shadow-lg hover:shadow-white/30 hover:scale-105"
+              {/* Subheading */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="font-paragraph text-xl md:text-2xl text-white/80 max-w-2xl leading-relaxed"
+              >
+                Connect with expert local guides and experience the world like never before. Authentic, personalized, unforgettable.
+              </motion.p>
+
+              {/* Stats */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="flex gap-8 pt-4"
+              >
+                <div>
+                  <div className="text-3xl font-heading font-black text-lavenderaccent">500+</div>
+                  <p className="text-white/60 font-paragraph text-sm">Expert Guides</p>
+                </div>
+                <div>
+                  <div className="text-3xl font-heading font-black text-lavenderaccent">50+</div>
+                  <p className="text-white/60 font-paragraph text-sm">Destinations</p>
+                </div>
+                <div>
+                  <div className="text-3xl font-heading font-black text-lavenderaccent">10K+</div>
+                  <p className="text-white/60 font-paragraph text-sm">Happy Travelers</p>
+                </div>
+              </motion.div>
+
+              {/* CTA Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="flex flex-col sm:flex-row items-start gap-4 pt-8"
+              >
+                <Link
+                  to="/tours"
+                  className="px-8 py-4 bg-white text-primary font-heading font-bold text-lg rounded-lg hover:bg-lavenderaccent transition-all duration-300 hover:scale-105 active:scale-95"
+                >
+                  Explore Tours
+                </Link>
+                <button
+                  onClick={isAuthenticated ? () => {} : actions.login}
+                  className="px-8 py-4 border-2 border-white text-white font-heading font-bold text-lg rounded-lg hover:bg-white/10 transition-all duration-300 hover:border-lavenderaccent active:scale-95"
+                >
+                  {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
+                </button>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Right Visual Element */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            style={{ y }}
+            className="hidden lg:flex items-center justify-center"
           >
-            Explore Tours
-          </Link>
-          <button
-            onClick={isAuthenticated ? () => {} : actions.login}
-            className="px-10 py-4 border-2 border-white text-white font-heading font-bold text-lg rounded-full hover:bg-white/10 transition-all duration-300 hover:border-lavenderaccent"
-          >
-            {isAuthenticated ? 'Go to Dashboard' : 'Sign In'}
-          </button>
-        </motion.div>
+            <div className="relative w-full aspect-square max-w-md">
+              {/* Floating Cards */}
+              <motion.div
+                animate={{ y: [0, -20, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-lavenderaccent/20 to-transparent border border-lavenderaccent/30 rounded-2xl backdrop-blur-sm p-6 flex flex-col justify-end"
+              >
+                <div className="text-white">
+                  <div className="text-sm font-paragraph text-white/70 mb-2">Featured Guide</div>
+                  <div className="font-heading font-bold text-lg">Local Expert</div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, 20, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute bottom-0 right-0 w-56 h-40 bg-gradient-to-br from-[#2d7a2d]/30 to-transparent border border-[#2d7a2d]/50 rounded-2xl backdrop-blur-sm p-6 flex flex-col justify-end"
+              >
+                <div className="text-white">
+                  <div className="text-sm font-paragraph text-white/70 mb-2">Next Adventure</div>
+                  <div className="font-heading font-bold text-lg">Mountain Trek</div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-1/2 right-1/4 w-40 h-40 bg-gradient-to-br from-white/10 to-transparent border border-white/20 rounded-2xl backdrop-blur-sm"
+              />
+            </div>
+          </motion.div>
+        </div>
 
         {/* Scroll Indicator */}
         <motion.div
