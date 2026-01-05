@@ -91,7 +91,7 @@ export interface Guides {
   email?: string;
   /** @wixFieldType text */
   phoneNumber?: string;
-  /** @wixFieldType image */
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
   profilePicture?: string;
   /** @wixFieldType text */
   bio?: string;
@@ -174,7 +174,7 @@ export interface Tourists {
   email?: string;
   /** @wixFieldType text */
   phoneNumber?: string;
-  /** @wixFieldType image */
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
   profilePicture?: string;
   /** @wixFieldType datetime */
   dateJoined?: Date | string;
@@ -197,7 +197,7 @@ export interface Tours {
   location?: string;
   /** @wixFieldType number */
   pricePerPerson?: number;
-  /** @wixFieldType image */
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
   mainImage?: string;
   /** @wixFieldType number */
   durationHours?: number;
