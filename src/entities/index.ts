@@ -99,6 +99,14 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
+  /** @wixFieldType text */
+  idType?: string;
+  /** @wixFieldType text */
+  idNumber?: string;
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
+  idDocument?: string;
+  /** @wixFieldType text */
+  verificationStatus?: string;
 }
 
 

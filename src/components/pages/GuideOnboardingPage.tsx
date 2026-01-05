@@ -38,6 +38,15 @@ const SPECIALTIES = [
   'Shopping',
 ];
 
+const ID_TYPES = [
+  'Passport',
+  'Aadhar Card',
+  'Driving License',
+  'PAN Card',
+  'Voter ID',
+  'National ID',
+];
+
 export default function GuideOnboardingPage() {
   const navigate = useNavigate();
   const { member } = useMember();
@@ -55,6 +64,9 @@ export default function GuideOnboardingPage() {
     yearsOfExperience: 0,
     hourlyRate: 500,
     profilePicture: '',
+    idType: '',
+    idNumber: '',
+    idDocument: '',
   });
 
   // Check if guide has already completed onboarding
@@ -95,14 +107,14 @@ export default function GuideOnboardingPage() {
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'profilePicture' | 'idDocument' = 'profilePicture') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
           ...prev,
-          profilePicture: reader.result as string,
+          [fieldName]: reader.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -128,9 +140,13 @@ export default function GuideOnboardingPage() {
         yearsOfExperience: formData.yearsOfExperience,
         hourlyRate: formData.hourlyRate,
         profilePicture: formData.profilePicture,
+        idType: formData.idType,
+        idNumber: formData.idNumber,
+        idDocument: formData.idDocument,
         averageRating: 0,
         isVerified: false, // Pending verification
         isActive: false,   // Not active until verified
+        verificationStatus: 'pending',
         role: 'guide',     // Set role to guide
         memberEmail: member?.loginEmail, // Store member email for role-based filtering
       });
@@ -147,14 +163,16 @@ export default function GuideOnboardingPage() {
 
   const steps = [
     { number: 1, title: 'Basic Info', description: 'Your personal details' },
-    { number: 2, title: 'Professional Info', description: 'Experience & expertise' },
-    { number: 3, title: 'Pricing & Availability', description: 'Rates and languages' },
-    { number: 4, title: 'Review & Submit', description: 'Confirm your details' },
+    { number: 2, title: 'Identity Verification', description: 'Verify your identity' },
+    { number: 3, title: 'Professional Info', description: 'Experience & expertise' },
+    { number: 4, title: 'Pricing & Availability', description: 'Rates and languages' },
+    { number: 5, title: 'Review & Submit', description: 'Confirm your details' },
   ];
 
-  const isStep1Valid = formData.fullName && formData.email && formData.phoneNumber && formData.city;
-  const isStep2Valid = formData.specialty && formData.bio && formData.yearsOfExperience > 0;
-  const isStep3Valid = formData.hourlyRate > 0 && formData.languagesSpoken;
+  const isStep1Valid = formData.fullName && formData.email && formData.phoneNumber && formData.city && formData.profilePicture;
+  const isStep2Valid = formData.idType && formData.idNumber && formData.idDocument;
+  const isStep3Valid = formData.specialty && formData.bio && formData.yearsOfExperience > 0;
+  const isStep4Valid = formData.hourlyRate > 0 && formData.languagesSpoken;
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,24 +205,24 @@ export default function GuideOnboardingPage() {
           transition={{ delay: 0.1 }}
           className="mb-12"
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4">
             {steps.map((s, index) => (
-              <div key={s.number} className="flex items-center flex-1">
+              <div key={s.number} className="flex items-center flex-1 min-w-max">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full font-heading font-bold text-lg transition-all ${
+                  className={`flex items-center justify-center w-10 h-10 rounded-full font-heading font-bold text-sm transition-all flex-shrink-0 ${
                     step >= s.number
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-primary/10 text-primary'
                   }`}
                 >
-                  {step > s.number ? <CheckCircle size={24} /> : s.number}
+                  {step > s.number ? <CheckCircle size={20} /> : s.number}
                 </motion.div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`flex-1 h-1 mx-4 rounded transition-all ${
+                    className={`flex-1 h-1 mx-2 rounded transition-all min-w-[20px] ${
                       step > s.number ? 'bg-primary' : 'bg-primary/10'
                     }`}
                   />
@@ -304,13 +322,13 @@ export default function GuideOnboardingPage() {
 
                 <div>
                   <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
-                    Profile Picture
+                    Profile Picture *
                   </label>
                   <div className="border-2 border-dashed border-primary/20 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={(e) => handleImageUpload(e, 'profilePicture')}
                       className="hidden"
                       id="profile-pic"
                     />
@@ -319,14 +337,93 @@ export default function GuideOnboardingPage() {
                       <p className="font-paragraph text-sm text-foreground/70">
                         Click to upload your profile picture
                       </p>
+                      {formData.profilePicture && (
+                        <p className="font-paragraph text-xs text-primary mt-2">✓ Image uploaded</p>
+                      )}
                     </label>
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* Step 2: Professional Info */}
+            {/* Step 2: Identity Verification */}
             {step === 2 && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="font-paragraph text-sm text-blue-900">
+                    🔒 Your identity information is securely stored and used only for verification purposes.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
+                    Type of Identification *
+                  </label>
+                  <select
+                    name="idType"
+                    value={formData.idType}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-primary/20 rounded-lg font-paragraph text-base focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Select ID type</option>
+                    {ID_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
+                    ID Number *
+                  </label>
+                  <Input
+                    type="text"
+                    name="idNumber"
+                    value={formData.idNumber}
+                    onChange={handleInputChange}
+                    placeholder="Enter your ID number"
+                    required
+                    className="font-paragraph"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-paragraph text-sm font-semibold text-foreground mb-2 block">
+                    ID Document Image *
+                  </label>
+                  <div className="border-2 border-dashed border-primary/20 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'idDocument')}
+                      className="hidden"
+                      id="id-doc"
+                    />
+                    <label htmlFor="id-doc" className="cursor-pointer">
+                      <Upload size={32} className="text-primary/50 mx-auto mb-2" />
+                      <p className="font-paragraph text-sm text-foreground/70">
+                        Click to upload a clear image of your ID document
+                      </p>
+                      <p className="font-paragraph text-xs text-foreground/50 mt-2">
+                        Ensure the document is clearly visible and readable
+                      </p>
+                      {formData.idDocument && (
+                        <p className="font-paragraph text-xs text-primary mt-2">✓ Document uploaded</p>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 3: Professional Info */}
+            {step === 3 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -384,8 +481,8 @@ export default function GuideOnboardingPage() {
               </motion.div>
             )}
 
-            {/* Step 3: Pricing & Languages */}
-            {step === 3 && (
+            {/* Step 4: Pricing & Languages */}
+            {step === 4 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -431,8 +528,8 @@ export default function GuideOnboardingPage() {
               </motion.div>
             )}
 
-            {/* Step 4: Review */}
-            {step === 4 && (
+            {/* Step 5: Review */}
+            {step === 5 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -440,6 +537,7 @@ export default function GuideOnboardingPage() {
                 className="space-y-6"
               >
                 <div className="bg-lavenderaccent/20 rounded-xl p-6 space-y-4">
+                  <h3 className="font-heading text-lg font-bold text-primary mb-4">Personal Information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="font-paragraph text-sm text-foreground/70">Full Name</p>
@@ -457,6 +555,26 @@ export default function GuideOnboardingPage() {
                       <p className="font-paragraph text-sm text-foreground/70">City</p>
                       <p className="font-heading text-lg font-bold text-primary">{formData.city}</p>
                     </div>
+                  </div>
+                </div>
+
+                <div className="bg-secondary/10 rounded-xl p-6 space-y-4 border border-secondary/20">
+                  <h3 className="font-heading text-lg font-bold text-secondary mb-4">Identity Verification</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="font-paragraph text-sm text-foreground/70">ID Type</p>
+                      <p className="font-heading text-lg font-bold text-secondary">{formData.idType}</p>
+                    </div>
+                    <div>
+                      <p className="font-paragraph text-sm text-foreground/70">ID Number</p>
+                      <p className="font-heading text-lg font-bold text-secondary">••••{formData.idNumber.slice(-4)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-lavenderaccent/20 rounded-xl p-6 space-y-4">
+                  <h3 className="font-heading text-lg font-bold text-primary mb-4">Professional Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="font-paragraph text-sm text-foreground/70">Specialty</p>
                       <p className="font-heading text-lg font-bold text-primary">{formData.specialty}</p>
@@ -465,20 +583,24 @@ export default function GuideOnboardingPage() {
                       <p className="font-paragraph text-sm text-foreground/70">Hourly Rate</p>
                       <p className="font-heading text-lg font-bold text-secondary">₹{formData.hourlyRate}</p>
                     </div>
+                    <div>
+                      <p className="font-paragraph text-sm text-foreground/70">Experience</p>
+                      <p className="font-heading text-lg font-bold text-primary">{formData.yearsOfExperience} years</p>
+                    </div>
+                    <div>
+                      <p className="font-paragraph text-sm text-foreground/70">Languages</p>
+                      <p className="font-heading text-lg font-bold text-primary">{formData.languagesSpoken}</p>
+                    </div>
                   </div>
                   <div>
                     <p className="font-paragraph text-sm text-foreground/70 mb-2">Bio</p>
                     <p className="font-paragraph text-base text-foreground">{formData.bio}</p>
                   </div>
-                  <div>
-                    <p className="font-paragraph text-sm text-foreground/70 mb-2">Languages</p>
-                    <p className="font-paragraph text-base text-foreground">{formData.languagesSpoken}</p>
-                  </div>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="font-paragraph text-sm text-blue-900">
-                    ℹ️ Your profile will be reviewed by our team. You'll receive an email once it's verified and approved.
+                    ℹ️ Your profile will be reviewed by our team. You'll receive an email once your identity is verified and your profile is approved.
                   </p>
                 </div>
               </motion.div>
@@ -496,19 +618,23 @@ export default function GuideOnboardingPage() {
                 </button>
               )}
 
-              {step < 4 ? (
+              {step < 5 ? (
                 <button
                   type="button"
                   onClick={() => {
                     if (step === 1 && !isStep1Valid) {
-                      alert('Please fill in all required fields');
+                      alert('Please fill in all required fields and upload a profile picture');
                       return;
                     }
                     if (step === 2 && !isStep2Valid) {
-                      alert('Please fill in all required fields');
+                      alert('Please fill in all identity verification fields');
                       return;
                     }
                     if (step === 3 && !isStep3Valid) {
+                      alert('Please fill in all required fields');
+                      return;
+                    }
+                    if (step === 4 && !isStep4Valid) {
                       alert('Please fill in all required fields');
                       return;
                     }

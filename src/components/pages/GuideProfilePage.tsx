@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import { BaseCrudService } from '@/integrations';
 import { Guides } from '@/entities';
 import { Image } from '@/components/ui/image';
-import { User, Mail, Calendar, Star, MapPin, Globe } from 'lucide-react';
+import { User, Mail, Calendar, Star, MapPin, Globe, Shield, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
@@ -102,6 +102,38 @@ export default function GuideProfilePageNew() {
                   </div>
                 )}
 
+                {/* Verification Status */}
+                {(guideData.verificationStatus || guideData.isVerified) && (
+                  <div className={`flex items-start gap-4 p-4 rounded-xl ${
+                    guideData.isVerified 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      guideData.isVerified 
+                        ? 'bg-green-200' 
+                        : 'bg-yellow-200'
+                    }`}>
+                      {guideData.isVerified ? (
+                        <CheckCircle size={20} className="text-green-700" />
+                      ) : (
+                        <Shield size={20} className="text-yellow-700" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-paragraph text-sm text-foreground/70 mb-1">Verification Status</p>
+                      <p className={`font-heading text-lg font-bold ${
+                        guideData.isVerified 
+                          ? 'text-green-700' 
+                          : 'text-yellow-700'
+                      }`}>
+                        {guideData.isVerified ? 'Verified' : 'Pending Verification'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ... keep existing code (email, phone, city, languages, experience, hourly rate sections) ... */}
                 {guideData.email && (
                   <div className="flex items-start gap-4 p-4 bg-background rounded-xl">
                     <div className="w-10 h-10 bg-secondary/20 rounded-full flex items-center justify-center flex-shrink-0">
