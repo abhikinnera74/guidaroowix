@@ -22,17 +22,21 @@ export function useRoleRedirect() {
       try {
         // Check if user is a guide
         const { items: guides } = await BaseCrudService.getAll<Guides>('guides');
-        const guideUser = guides.find(g => g.email === member.loginEmail);
+        const guideUser = guides.find(g => g.email === member.loginEmail || g.memberEmail === member.loginEmail);
 
         if (guideUser) {
-          // User is a guide - redirect to guide dashboard
-          navigate('/guide-dashboard');
+          // User is a guide - redirect to guide onboarding if not completed, otherwise to dashboard
+          if (!guideUser.isActive) {
+            navigate('/guide-onboarding');
+          } else {
+            navigate('/guide-dashboard');
+          }
           return;
         }
 
         // Check if user is a tourist
         const { items: tourists } = await BaseCrudService.getAll<Tourists>('tourists');
-        const touristUser = tourists.find(t => t.email === member.loginEmail);
+        const touristUser = tourists.find(t => t.email === member.loginEmail || t.memberEmail === member.loginEmail);
 
         if (touristUser) {
           // User is a tourist - redirect to tours

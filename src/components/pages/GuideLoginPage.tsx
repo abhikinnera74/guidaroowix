@@ -1,6 +1,4 @@
 import { useMember } from '@/integrations';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { GuidePremiumHeader } from '@/components/PremiumHeader';
 import Footer from '@/components/Footer';
 import { Compass } from 'lucide-react';
@@ -8,14 +6,7 @@ import { useRoleRedirect } from '@/hooks/use-role-redirect';
 
 export default function GuideLoginPage() {
   const { isAuthenticated, actions } = useMember();
-  const navigate = useNavigate();
   useRoleRedirect();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Role redirect hook will handle the navigation
-    }
-  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -51,12 +42,12 @@ export default function GuideLoginPage() {
               <p className="font-paragraph text-sm text-foreground mb-4">
                 Are you a tourist?
               </p>
-            <button
-              onClick={() => navigate('/login')}
+            <a
+              href="/login"
               className="font-paragraph text-base text-primary hover:text-primary/80 transition-colors underline"
             >
               Sign in as a Tourist
-            </button>
+            </a>
             </div>
           </div>
         </div>
