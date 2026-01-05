@@ -72,6 +72,14 @@ export interface Guides {
   /** @wixFieldType boolean */
   isVerified?: boolean;
   /** @wixFieldType text */
+  verificationStatus?: string;
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
+  idDocument?: string;
+  /** @wixFieldType text */
+  idNumber?: string;
+  /** @wixFieldType text */
+  idType?: string;
+  /** @wixFieldType text */
   memberEmail?: string;
   /** @wixFieldType text */
   role?: string;
@@ -99,14 +107,8 @@ export interface Guides {
   languagesSpoken?: string;
   /** @wixFieldType number */
   yearsOfExperience?: number;
-  /** @wixFieldType text */
-  idType?: string;
-  /** @wixFieldType text */
-  idNumber?: string;
-  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
-  idDocument?: string;
-  /** @wixFieldType text */
-  verificationStatus?: string;
+  /** @wixFieldType address */
+  address?: string;
 }
 
 
